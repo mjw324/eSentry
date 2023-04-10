@@ -1,0 +1,6 @@
+{
+  "dependencies": {
+    "dotenv": "^16.0.3",
+    "mysql": "^2.18.1"
+  }
+}
