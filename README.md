@@ -4,6 +4,10 @@ Takes an eBay search link, scrapes the items from the page and will notify you o
 
 
 ## TO DO
-### Link hostinger database to store user accounts
-https://github.com/passport/todos-express-facebook
-https://www.passportjs.org/packages/passport-google-oauth20/
+### Login Page
+Angular
+https://jasonwatmore.com/post/2022/11/29/angular-14-user-registration-and-login-example-tutorial
+NodeJS
+https://jasonwatmore.com/post/2022/07/01/nodejs-ms-sql-server-simple-api-for-authentication-registration-and-user-management
+
+
