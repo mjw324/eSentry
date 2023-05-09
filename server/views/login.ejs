@@ -12,13 +12,6 @@
 		<section class="prompt">
 			<h3>todos</h3>
 			<h1>Sign in</h1>
-			<% if (hasMessages) { %>
-			<section class="messages">
-				<% messages.forEach(function(message) { %>
-				<p><%= message %></p>
-				<% }); %>
-			</section>
-			<% } %>
 			<a class="button google" href="/login/federated/google">Sign in with Google</a>
 		</section>
 		<footer class="info">
