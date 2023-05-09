@@ -4,17 +4,31 @@ require('dotenv').config();
 var createError = require('http-errors');
 var express = require('express');
 var path = require('path');
-// var cookieParser = require('cookie-parser');
+var cookieParser = require('cookie-parser');
 var session = require('express-session');
-// var csrf = require('csurf');
+var csrf = require('csurf');
 var passport = require('passport');
-// var logger = require('morgan');
+var logger = require('morgan');
 
 // Import MySQL session store
-// var MySQLStore = require('express-mysql-session')(session);
-// var database = require('./boot/database'); // Import the MySQL pool
+var MySQLStore = require('express-mysql-session')(session);
+var database = require('./boot/database'); // Import the MySQL pool
 var indexRouter = require('./routes/index');
 var authRouter = require('./routes/auth');
+
+// Configuration used for sessionStore
+const options = {
+  host: process.env.DB_HOST,
+  user: process.env.DB_USER,
+  password: process.env.DB_PASSWORD,
+  database: process.env.DB_NAME,
+  waitForConnections: true,
+  connectionLimit: 10,
+  queueLimit: 0
+};
+
+// Stores user sessions in the MySQL database
+const sessionStore = new MySQLStore(options);
 
 var app = express();
 
@@ -22,13 +36,43 @@ var app = express();
 app.set('views', path.join(__dirname, 'views'));
 app.set('view engine', 'ejs');
 
-// app.locals.pluralize = require('pluralize');
 
-// app.use(logger('dev'));
+// Useful to determine if outputed strings should be singular or plural, given the amount
+app.locals.pluralize = require('pluralize');
+
+// Dev logger, can delete when in production
+app.use(logger('dev'));
 app.use(express.json());
 app.use(express.urlencoded({ extended: false }));
-// app.use(cookieParser());
+app.use(cookieParser());
 app.use(express.static(path.join(__dirname, 'public')));
+
+// Configure session middleware
+app.use(
+  session({
+    secret: 'cardboard cat',
+    resave: false,
+    saveUninitialized: false,
+    store: sessionStore // uses MySQL Session Store
+  })
+);
+
+app.use(csrf());
+app.use(passport.authenticate('session'));
+
+app.use(function(req, res, next) {
+  var msgs = req.session.messages || [];
+  res.locals.messages = msgs;
+  res.locals.hasMessages = !! msgs.length;
+  req.session.messages = [];
+  next();
+});
+
+// Passes the CSRF token to routes
+app.use(function(req, res, next) {
+  res.locals.csrfToken = req.csrfToken();
+  next();
+});
 
 
 app.use('/', indexRouter);
