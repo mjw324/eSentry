@@ -14,7 +14,8 @@ export class UserService {
     this.currentUser = {
       photoUrl: socialUser.photoUrl,
       name: socialUser.name,
-      email: socialUser.email
+      email: socialUser.email,
+      id: socialUser.id
     }
   }
   getCurrentUser(): User {
