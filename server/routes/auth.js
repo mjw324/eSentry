@@ -51,31 +51,38 @@ passport.use(new GoogleStrategy({
 // from the database when deserializing.  However, due to the fact that this
 // example does not have a database, the complete Facebook profile is serialized
 // and deserialized.
+// passport.serializeUser(function(user, cb) {
+//   process.nextTick(function() {
+//     cb(null, { id: user.id, username: user.username, name: user.name });
+//   });
+// });
+
+// passport.deserializeUser(function(user, cb) {
+//   process.nextTick(function() {
+//     return cb(null, user);
+//   });
+// });
+// In this version, serializeUser is only storing the user's ID in the session
+// Then deserializeUser is using that ID to retrieve the full user from the database.
 passport.serializeUser(function(user, cb) {
-  process.nextTick(function() {
-    cb(null, { id: user.id, username: user.username, name: user.name });
+  cb(null, user.id);
+});
+
+passport.deserializeUser(function(id, cb) {
+  db.pool.query('SELECT * FROM users WHERE id = ?', [id], (error, results, fields) => {
+    if (error) { return cb(error); }
+    cb(null, results[0]);
   });
 });
 
-passport.deserializeUser(function(user, cb) {
-  process.nextTick(function() {
-    return cb(null, user);
-  });
-});
+
 
 
 var router = express.Router();
 
-/* GET /login
- *
- * This route prompts the user to log in.
- *
- * The 'login' view renders an HTML page, which contain a button prompting the
- * user to sign in with Google.  When the user clicks this button, a request
- * will be sent to the `GET /login/federated/accounts.google.com` route.
- */
+// If Angular never uses this route, we can delete it
 router.get('/login', function(req, res, next) {
-  res.render('login');
+  res.redirect('/login/federated/google');
 });
 
 /* GET /login/federated/accounts.google.com
@@ -99,8 +106,8 @@ router.get('/login/federated/google', passport.authenticate('google'));
     user returns, they are signed in to their linked account.
 */
 router.get('/oauth2/redirect/google', passport.authenticate('google', {
-  successReturnToOrRedirect: '/',
-  failureRedirect: '/login'
+  successReturnToOrRedirect: 'http://localhost:4200/success',
+  failureRedirect: 'http://localhost:4200/failure'
 }));
 
 /* POST /logout
@@ -108,10 +115,8 @@ router.get('/oauth2/redirect/google', passport.authenticate('google', {
  * This route logs the user out.
  */
 router.post('/logout', function(req, res, next) {
-  req.logout(function(err) {
-    if (err) { return next(err); }
-    res.redirect('/');
-  });
+  req.logout();
+  return res.status(200).json({ message: "Logout successful" });
 });
 
 module.exports = router;

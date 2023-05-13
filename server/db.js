@@ -44,13 +44,13 @@ pool.query(`
 `);
 
 // Creating monitors table, holding the search parameters for each monitor and the respective owner
-// db_pool.query(`
-//   CREATE TABLE IF NOT EXISTS monitors (
-//     id INT AUTO_INCREMENT PRIMARY KEY,
-//     owner_id INT NOT NULL,
-//     search_parameters VARCHAR(255) NOT NULL,
-//   )
-// `);
+pool.query(`
+  CREATE TABLE IF NOT EXISTS monitors (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    owner_id INT NOT NULL,
+    search_parameters VARCHAR(255) NOT NULL
+  )
+`);
 pool.query(`
   CREATE TABLE IF NOT EXISTS todos (
     id INT AUTO_INCREMENT PRIMARY KEY,
