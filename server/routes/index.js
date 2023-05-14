@@ -27,7 +27,7 @@ var ensureLoggedIn = ensureLogIn();
 
 var router = express.Router();
 
-/* GET home page, if user isn't logged in it displays login homepage */
+// GET home page, if user isn't logged in it displays login homepage */
 // router.get('/', function(req, res, next) {
 //   if (!req.user) { return res.render('home'); }
 //   next();
@@ -118,5 +118,34 @@ var router = express.Router();
 //     return res.redirect('/' + (req.body.filter || ''));
 //   });
 // });
+
+// GET: Fetch all monitors
+router.get('/monitors', function(req, res, next) {
+  db.pool.query('SELECT * FROM monitors', function(error, results, fields) {
+    if (error) { return next(error); }
+  
+    // Respond with the list of monitors
+    res.json(results);
+  });
+});
+
+// POST: Add a new monitor
+router.post('/monitors', function(req, res, next) {
+    // Extract 'keywords' from the request body
+    const keywords = req.query.keywords;
+    if (!keywords) {
+      // If 'keywords' is not provided, respond with an error status and message
+      return res.status(400).json({ message: 'Keywords are required' });
+    }
+  
+    db.pool.query('INSERT INTO monitors (keywords) VALUES (?)', [
+      keywords
+    ], function(error, results, fields) {
+      if (error) { return next(error); }
+  
+      // Respond with the fID of the newly created monitor
+      res.json({ id: results.insertId });
+    });
+  });
 
 module.exports = router;

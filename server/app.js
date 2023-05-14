@@ -34,10 +34,6 @@ const sessionStore = new MySQLStore(options);
 const app = express();
 
 
-
-// Useful to determine if outputed strings should be singular or plural, given the amount
-app.locals.pluralize = require('pluralize');
-
 // Dev logger, can delete when in production
 app.use(logger('dev'));
 app.use(express.json());
@@ -56,7 +52,7 @@ app.use(
   })
 );
 
-app.use(csrf());
+// app.use(csrf());
 app.use(passport.authenticate('session'));
 
 app.use(function(req, res, next) {
