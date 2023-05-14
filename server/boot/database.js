@@ -43,13 +43,15 @@ db_pool.query(`
   )
 `);
 
+
 // Creating monitors table, holding the search parameters for each monitor and the respective owner
 db_pool.query(`
   CREATE TABLE IF NOT EXISTS monitors (
     id INT AUTO_INCREMENT PRIMARY KEY,
-    owner_id INT NOT NULL,
-    search_parameters VARCHAR(255) NOT NULL
+    keywords VARCHAR(255) NOT NULL,
+    chatid VARCHAR(255) NOT NULL
   )
 `);
+
 
 module.exports = db_pool;
