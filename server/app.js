@@ -1,20 +1,21 @@
 // imports environment variables, which are stored in .env file.
 require('dotenv').config();
 
-var createError = require('http-errors');
-var express = require('express');
-var path = require('path');
-var cookieParser = require('cookie-parser');
-var session = require('express-session');
-var csrf = require('csurf');
-var passport = require('passport');
-var logger = require('morgan');
+const createError = require('http-errors');
+const express = require('express');
+const path = require('path');
+const cookieParser = require('cookie-parser');
+const session = require('express-session');
+const csrf = require('csurf');
+const passport = require('passport');
+const logger = require('morgan');
+const cors = require('cors');
 
 // Import MySQL session store
-var MySQLStore = require('express-mysql-session')(session);
-var database = require('./boot/database'); // Import the MySQL pool
-var indexRouter = require('./routes/index');
-var authRouter = require('./routes/auth');
+const MySQLStore = require('express-mysql-session')(session);
+const database = require('./boot/database'); // Import the MySQL pool
+const indexRouter = require('./routes/index');
+const authRouter = require('./routes/auth');
 
 // Configuration used for sessionStore
 const options = {
@@ -30,22 +31,16 @@ const options = {
 // Stores user sessions in the MySQL database
 const sessionStore = new MySQLStore(options);
 
-var app = express();
+const app = express();
 
-// view engine setup
-app.set('views', path.join(__dirname, 'views'));
-app.set('view engine', 'ejs');
-
-
-// Useful to determine if outputed strings should be singular or plural, given the amount
-app.locals.pluralize = require('pluralize');
 
 // Dev logger, can delete when in production
 app.use(logger('dev'));
 app.use(express.json());
 app.use(express.urlencoded({ extended: false }));
+app.use(cors());
 app.use(cookieParser());
-app.use(express.static(path.join(__dirname, 'public')));
+
 
 // Configure session middleware
 app.use(
@@ -57,7 +52,7 @@ app.use(
   })
 );
 
-app.use(csrf());
+// app.use(csrf());
 app.use(passport.authenticate('session'));
 
 app.use(function(req, res, next) {
@@ -68,30 +63,39 @@ app.use(function(req, res, next) {
   next();
 });
 
+// This function isn't necessary as CSRF protection is handled on client side using Angular
 // Passes the CSRF token to routes
-app.use(function(req, res, next) {
-  res.locals.csrfToken = req.csrfToken();
-  next();
-});
+// app.use(function(req, res, next) {
+//   res.locals.csrfToken = req.csrfToken();
+//   next();
+// });
 
 
 app.use('/', indexRouter);
 app.use('/', authRouter);
 
-// catch 404 and forward to error handler
-app.use(function(req, res, next) {
-    next(createError(404));
-  });
   
 // error handler
 app.use(function(err, req, res, next) {
-    // set locals, only providing error in development
-    res.locals.message = err.message;
-    res.locals.error = req.app.get('env') === 'development' ? err : {};
-  
-    // render the error page
-    res.status(err.status || 500);
-    res.render('error');
+  // set locals, only providing error in development 
+  // Remember, it is important not to send detailed error information
+  // in a production environment as it can expose sensitive information about your application.
+  // TODO: When in production change this to false
+  const isDevelopment = true;
+  res.locals.message = err.message;
+  res.locals.error = isDevelopment ? err : {};
+
+  // respond with error status and message
+  res.status(err.status || 500);
+  res.json({
+    message: err.message,
+    error: isDevelopment ? err : {},
   });
+});
+
+// catch 404 and forward to error handler
+app.use(function(req, res, next) {
+  next(createError(404));
+});
 
 module.exports = app;
