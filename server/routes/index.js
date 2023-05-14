@@ -1,8 +1,10 @@
-var express = require('express');
-var ensureLogIn = require('connect-ensure-login').ensureLoggedIn;
-var db = require('../db');
+const express = require('express');
+const ensureLogIn = require('connect-ensure-login').ensureLoggedIn;
+const db = require('../db');
+// Import addScraper function from scrape.js
+const { addScraper } = require('../scrape');
 
-var ensureLoggedIn = ensureLogIn();
+const ensureLoggedIn = ensureLogIn();
 
 // function fetchTodos(req, res, next) {
 //   db.pool.query('SELECT * FROM todos WHERE owner_id = ?', [
@@ -25,7 +27,7 @@ var ensureLoggedIn = ensureLogIn();
 //   });
 // }
 
-var router = express.Router();
+const router = express.Router();
 
 // GET home page, if user isn't logged in it displays login homepage */
 // router.get('/', function(req, res, next) {
@@ -133,16 +135,19 @@ router.get('/monitors', function(req, res, next) {
 router.post('/monitors', function(req, res, next) {
     // Extract 'keywords' from the request body
     const keywords = req.query.keywords;
-    if (!keywords) {
-      // If 'keywords' is not provided, respond with an error status and message
-      return res.status(400).json({ message: 'Keywords are required' });
+    const chatID = req.query.chatID;
+
+    if (!keywords || !chatID) {
+      // If 'keywords' or 'chatid' is not provided, respond with an error status and message
+      return res.status(400).json({ message: 'Keywords and chatID are required' });
     }
   
-    db.pool.query('INSERT INTO monitors (keywords) VALUES (?)', [
-      keywords
+    db.pool.query('INSERT INTO monitors (keywords, chatid) VALUES (?, ?)', [
+      keywords, chatID
     ], function(error, results, fields) {
       if (error) { return next(error); }
-  
+      // Install addScraper here with 60s interval
+      addScraper(keywords, chatID, 60000);
       // Respond with the fID of the newly created monitor
       res.json({ id: results.insertId });
     });
