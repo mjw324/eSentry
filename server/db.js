@@ -47,7 +47,8 @@ pool.query(`
 pool.query(`
   CREATE TABLE IF NOT EXISTS monitors (
     id INT AUTO_INCREMENT PRIMARY KEY,
-    keywords VARCHAR(255) NOT NULL
+    keywords VARCHAR(255) NOT NULL,
+    chatid VARCHAR(255) NOT NULL
   )
 `);
 

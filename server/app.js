@@ -13,9 +13,13 @@ const cors = require('cors');
 
 // Import MySQL session store
 const MySQLStore = require('express-mysql-session')(session);
-const database = require('./boot/database'); // Import the MySQL pool
+const db = require('./db'); // Import the MySQL pool
 const indexRouter = require('./routes/index');
 const authRouter = require('./routes/auth');
+// This is used to add all scrapers saved in db on startup
+var { addScraper } = require('./scrape');
+
+
 
 // Configuration used for sessionStore
 const options = {
@@ -74,6 +78,7 @@ app.use(function(req, res, next) {
 app.use('/', indexRouter);
 app.use('/', authRouter);
 
+
   
 // error handler
 app.use(function(err, req, res, next) {
@@ -96,6 +101,18 @@ app.use(function(err, req, res, next) {
 // catch 404 and forward to error handler
 app.use(function(req, res, next) {
   next(createError(404));
+});
+
+db.pool.query('SELECT * FROM monitors', function(error, results, fields) {
+  if (error) { 
+    console.error("Error fetching monitors on startup:", error);
+    return;
+  }
+  
+  results.forEach(function(monitor) {
+    addScraper(monitor.keywords, monitor.chatid, 60000);
+  });
+
 });
 
 module.exports = app;
