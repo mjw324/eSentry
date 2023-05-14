@@ -3,7 +3,16 @@
 @import "primeng/resources/primeng.css";
 @import "primeicons/primeicons.css";
 
-body {
-    font-family: var(--font-family);
-    background-image: url("assets/images/bg.jpg");
+body
+{
+    font-family: 'Rubik';
+}
+
+#myVideo {
+    position: fixed;
+    right: 0;
+    bottom: 0;
+    min-width: 100%;
+    min-height: 100%;
+    z-index: -1;
 }

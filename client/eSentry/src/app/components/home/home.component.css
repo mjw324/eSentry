@@ -1,0 +1,12 @@
+::ng-deep .p-menubar{
+    font-family: 'Rubik';
+    height: 75px;
+}
+
+::ng-deep .p-dialog{
+    font-family: 'Rubik';
+}
+
+::ng-deep h2 {
+    padding-right: 20px;
+}
