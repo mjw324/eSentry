@@ -133,9 +133,10 @@ router.get('/monitors', function(req, res, next) {
 
 // POST: Add a new monitor
 router.post('/monitors', function(req, res, next) {
+    console.log(req.body);
     // Extract 'keywords' from the request body
-    const keywords = req.query.keywords;
-    const chatID = req.query.chatID;
+    const keywords = req.body.keywords;
+    const chatID = req.body.chatid;
 
     if (!keywords || !chatID) {
       // If 'keywords' or 'chatid' is not provided, respond with an error status and message
@@ -147,7 +148,7 @@ router.post('/monitors', function(req, res, next) {
     ], function(error, results, fields) {
       if (error) { return next(error); }
       // Install addScraper here with 60s interval
-      addScraper(keywords, chatID, 60000);
+      addScraper(keywords, chatID, 5000);
       // Respond with the fID of the newly created monitor
       res.json({ id: results.insertId });
     });
