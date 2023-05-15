@@ -11,11 +11,13 @@ import { MonitorService } from 'src/app/services/monitor.service';
 export class MonitorListComponent implements OnInit, OnDestroy {
 
   monitors: Monitor[] = [];
+  intervalID: any;
   monitorSubscription: Subscription = new Subscription();
   constructor(public monitorService: MonitorService) { }
 
   ngOnInit(): void {
     //this.monitors = [{id:1,keywords:"3090"}]
+    this.intervalID = setInterval(this.monitorService.fetchMonitors, 10000)
     this.monitorService.fetchMonitors();
     this.monitorSubscription = this.monitorService.getMonitors().subscribe(monitors => {
       this.monitors = monitors;
@@ -24,5 +26,6 @@ export class MonitorListComponent implements OnInit, OnDestroy {
 
   ngOnDestroy(): void {
     this.monitorSubscription.unsubscribe();
+    clearInterval(this.intervalID);
   }
 }
