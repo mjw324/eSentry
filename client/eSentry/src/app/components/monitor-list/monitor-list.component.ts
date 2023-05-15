@@ -8,17 +8,17 @@ import { MonitorService } from 'src/app/services/monitor.service';
   templateUrl: './monitor-list.component.html',
   styleUrls: ['./monitor-list.component.css']
 })
-export class MonitorListComponent implements OnInit, OnDestroy{
+export class MonitorListComponent implements OnInit, OnDestroy {
 
-  monitors:Monitor[] = [];
-  monitorSubscription:Subscription= new Subscription();
-  constructor(public monitorService:MonitorService) { }
+  monitors: Monitor[] = [];
+  monitorSubscription: Subscription = new Subscription();
+  constructor(public monitorService: MonitorService) { }
 
   ngOnInit(): void {
-    this.monitors = [{id:1,keywords:"3090"}]
-    //this.monitorService.fetchMonitors();
+    //this.monitors = [{id:1,keywords:"3090"}]
+    this.monitorService.fetchMonitors();
     this.monitorSubscription = this.monitorService.getMonitors().subscribe(monitors => {
-      //this.monitors = monitors;
+      this.monitors = monitors;
     });
   }
 
