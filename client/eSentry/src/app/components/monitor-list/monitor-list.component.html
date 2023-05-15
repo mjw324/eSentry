@@ -5,12 +5,14 @@
         <tr>
             <th>ID</th>
             <th>Keywords</th>
+            <th>TelegramID</th>
         </tr>
     </ng-template>
     <ng-template pTemplate="body" let-monitor>
         <tr>
             <td>{{monitor.id}}</td>
             <td>{{monitor.keywords}}</td>
+            <td>{{monitor.chatID}}</td>
         </tr>
     </ng-template>
 </p-table>
