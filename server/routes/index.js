@@ -143,8 +143,8 @@ router.post('/monitors', function(req, res, next) {
       return res.status(400).json({ message: 'Keywords and chatID are required' });
     }
   
-    db.pool.query('INSERT INTO monitors (keywords, chatid) VALUES (?, ?)', [
-      keywords, chatID
+    db.pool.query('INSERT INTO monitors (keywords, chatid, recentlink) VALUES (?, ?, ?)', [
+      keywords, chatID, ""
     ], function(error, results, fields) {
       if (error) { return next(error); }
       // Install addScraper here with 60s interval

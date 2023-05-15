@@ -2,7 +2,7 @@ const axios = require('axios');
 const cheerio = require('cheerio');
 const TelegramBot = require('node-telegram-bot-api');
 const bot = new TelegramBot(***REMOVED***, { polling: true });
-
+const db = require('./db');
 
 // my chatID is 6274459892
 
@@ -53,7 +53,14 @@ async function retrieveMonitor(keywords, chatID, monitors) {
                 difference.forEach(item => {
                     console.log(`New Item Found! Link: ${item.link}`);
                     bot.sendMessage(chatID, `${item.name} for ${item.price} Link: ${item.link}`);
+                    // Store the link of the most recent item found in the database
+                    db.pool.query('UPDATE monitors SET recentlink = ? WHERE keywords = ? AND chatid = ?', [
+                        item.link, keywords, chatID
+                      ], function(error, results, fields) {
+                        if (error) console.log(error);
+                      });
                 });
+
             }
             monitors.scraped = monitors.newScraped;
             monitors.newScraped = []; // newScrapedMonitors will be emptied
