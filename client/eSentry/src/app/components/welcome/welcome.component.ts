@@ -21,7 +21,6 @@ export class WelcomeComponent implements OnInit {
   ngOnInit() {
     this.socialAuthService.authState.subscribe((user) => {
       if (user != null) {
-        console.log(user)
         this.userService.setCurrentUser(user);
         this.router.navigate(['/home']);
       }
