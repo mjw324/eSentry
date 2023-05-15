@@ -1,0 +1,16 @@
+<h1>Monitor List</h1>
+
+<p-table [value]="monitors">
+    <ng-template pTemplate="header">
+        <tr>
+            <th>ID</th>
+            <th>Keywords</th>
+        </tr>
+    </ng-template>
+    <ng-template pTemplate="body" let-monitor>
+        <tr>
+            <td>{{monitor.id}}</td>
+            <td>{{monitor.keywords}}</td>
+        </tr>
+    </ng-template>
+</p-table>
