@@ -16,7 +16,7 @@ export class NewMonitorMenuComponent {
     public dialogService: DialogService) { }
 
   saveKeywords() {
-    const keywords: MonitorRequest = { keywords: this.keywords, chatID: this.telegramID };
+    const keywords: MonitorRequest = { keywords: this.keywords, chatid: this.telegramID };
     this.monitorService.addMonitor(keywords);
     this.monitorService.fetchMonitors();
     this.keywords = "";
