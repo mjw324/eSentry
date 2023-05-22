@@ -1,13 +1,12 @@
 const axios = require('axios');
 const cheerio = require('cheerio');
 const TelegramBot = require('node-telegram-bot-api');
-const bot = new TelegramBot('5896178858:AAFvanOCKcfotzURZKer4SglYsb2nE0IGaA', { polling: true });
+const bot = new TelegramBot(process.env.TELEGRAM_BOT_TOKEN, { polling: true });
 const db = require('./db');
 
-// my chatID is 6274459892
 
 async function retrieveMonitor(keywords, chatID, monitors) {
-        // take string keywords and deliminate them with + for URL
+        // take string keywords and replace whitespace chars with the char '+' for URL
         var keywordsURL = keywords.replace(/ /g, "+");
         // console.log(keywordsURL);
         const response = await axios(`https://www.ebay.com/sch/i.html?_from=R40&_nkw=${keywordsURL}&_sacat=0&_sop=10&rt=nc&LH_BIN=1`);
@@ -28,7 +27,7 @@ async function retrieveMonitor(keywords, chatID, monitors) {
                 });
                 // console.log(`Name: ${itemName} Price: ${itemPrice}`);
             }
-        }); 
+        });
         if(monitors.scraped.length === 0) { // If scrapedMonitors is empty, it will be filled with newScrapedMonitors
             monitors.scraped = monitors.newScraped;
             monitors.newScraped = [];
@@ -69,7 +68,7 @@ async function retrieveMonitor(keywords, chatID, monitors) {
 
 function addScraper(keywords, chatID, milliseconds) {
     let monitors = {scraped: [], newScraped: []};
-    // setInterval will call retrieveMonitor every x milliseconds
+    // setInterval will call retrieveMonitor in the specified interval of milliseconds
     setInterval(() => {
         retrieveMonitor(keywords, chatID, monitors).catch(error => {
             console.error(`Failed to retrieve monitor for keywords "${keywords}" and chatID "${chatID}":`, error);
