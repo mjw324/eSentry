@@ -1,7 +1,4 @@
 var mysql = require('mysql2');
-const mkdirp = require('mkdirp');
-
-mkdirp.sync('./var/db');
 
 
 // Database configuration
