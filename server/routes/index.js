@@ -154,4 +154,24 @@ router.post('/monitors', function(req, res, next) {
     });
   });
 
+// DELETE: Delete a monitor by its ID
+// TODO: Delete the scraper as well, check if userid matches monitor's ownerid
+router.delete('/monitors/:id', function(req, res, next) {
+  // Extract 'id' from the request parameters
+  const id = req.params.id;
+
+  if (!id) {
+      // If 'id' is not provided, respond with an error status and message
+      return res.status(400).json({ message: 'Monitor id is required' });
+  }
+
+  db.pool.query('DELETE FROM monitors WHERE id = ?', [id], function(error, results, fields) {
+      if (error) { return next(error); }
+
+      // Respond with a success message
+      res.json({ message: 'Monitor successfully deleted' });
+  });
+
+});
+
 module.exports = router;
