@@ -1,17 +1,17 @@
 const express = require('express');
-const ensureLogIn = require('connect-ensure-login').ensureLoggedIn;
+// const ensureLogIn = require('connect-ensure-login').ensureLoggedIn;
 const db = require('../db');
 // Import addScraper function from scrape.js
 const { addScraper } = require('../scrape');
 
-const ensureLoggedIn = ensureLogIn();
+// const ensureLoggedIn = ensureLogIn();
 
 // function fetchTodos(req, res, next) {
 //   db.pool.query('SELECT * FROM todos WHERE owner_id = ?', [
 //     req.user.id
 //   ], function(error, results, fields) {
 //     if (error) { return next(error); }
-    
+
 //     var todos = results.map(function(row) {
 //       return {
 //         id: row.id,
@@ -122,54 +122,84 @@ const router = express.Router();
 // });
 
 // GET: Fetch all monitors
-router.get('/monitors', function(req, res, next) {
-  db.pool.query('SELECT * FROM monitors', function(error, results, fields) {
+router.get('/monitors', function (req, res, next) {
+  db.pool.query('SELECT * FROM monitors', function (error, results, fields) {
     if (error) { return next(error); }
-  
+
     // Respond with the list of monitors
     res.json(results);
   });
 });
 
 // POST: Add a new monitor
-router.post('/monitors', function(req, res, next) {
-    console.log(req.body);
-    // Extract 'keywords' from the request body
-    const keywords = req.body.keywords;
-    const chatID = req.body.chatid;
-
-    if (!keywords || !chatID) {
-      // If 'keywords' or 'chatid' is not provided, respond with an error status and message
-      return res.status(400).json({ message: 'Keywords and chatID are required' });
-    }
+router.post('/monitors', function (req, res, next) {
+  // Extract the following from the request body
+  // keywords object JSON format. Example is a new condition "iphone" with a price range of $100-$500, excluding "pro" and "max" keywords
+  // {
+  //   "chatid": 123456789,
+  //   "keywords": "iphone",
+  //   "min_price": 100,
+  //   "max_price": 500,
+  //   "condition_new": true,
+  //   "condition_open_box": false,
+  //   "condition_used": false,
+  //   "exclude_keywords": "pro max"
+  // }
   
-    db.pool.query('INSERT INTO monitors (keywords, chatid, recentlink) VALUES (?, ?, ?)', [
-      keywords, chatID, ""
-    ], function(error, results, fields) {
-      if (error) { return next(error); }
-      // Install addScraper here with 60s interval
-      addScraper(keywords, chatID, 5000);
-      // Respond with the fID of the newly created monitor
+  const monitorObj = req.body;
+  
+
+  if (!monitorObj.keywords || !monitorObj.chatid) {
+    // If 'keywords' or 'chatid' is not provided, respond with an error status and message
+    return res.status(400).json({ message: 'Keywords and chatid are required' });
+  }
+  db.pool.query(
+    'INSERT INTO monitors (keywords, chatid, recentlink, min_price, max_price, condition_new, condition_open_box, condition_used, exclude_keywords) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)', 
+    [
+      monitorObj.keywords, 
+      monitorObj.chatid, 
+      null, // recentlink is always null/non-existent when scraper is first initialized
+      monitorObj.min_price || null, 
+      monitorObj.max_price || null, 
+      monitorObj.condition_new || null, 
+      monitorObj.condition_open_box || null, 
+      monitorObj.condition_used || null, 
+      monitorObj.exclude_keywords || null
+    ], 
+    function(error, results, fields) {
+      if (error) {
+        console.log(error);
+        return res.status(500).json({ message: 'Internal server error' }); // Notify the client that an internal server error occurred
+      }
+      // If no error, proceed to add the scraper and respond with the ID of the newly created monitor
+
+      // Install addScraper here with specified interval
+      addScraper(monitorObj, process.env.SCRAPE_REFRESH_RATE);
+
+      // Respond with the ID of the newly created monitor
       res.json({ id: results.insertId });
-    });
-  });
+    }
+  );
+
+
+});
 
 // DELETE: Delete a monitor by its ID
 // TODO: Delete the scraper as well, check if userid matches monitor's ownerid
-router.delete('/monitors/:id', function(req, res, next) {
+router.delete('/monitors/:id', function (req, res, next) {
   // Extract 'id' from the request parameters
   const id = req.params.id;
 
   if (!id) {
-      // If 'id' is not provided, respond with an error status and message
-      return res.status(400).json({ message: 'Monitor id is required' });
+    // If 'id' is not provided, respond with an error status and message
+    return res.status(400).json({ message: 'Monitor id is required' });
   }
 
-  db.pool.query('DELETE FROM monitors WHERE id = ?', [id], function(error, results, fields) {
-      if (error) { return next(error); }
+  db.pool.query('DELETE FROM monitors WHERE id = ?', [id], function (error, results, fields) {
+    if (error) { return next(error); }
 
-      // Respond with a success message
-      res.json({ message: 'Monitor successfully deleted' });
+    // Respond with a success message
+    res.json({ message: 'Monitor successfully deleted' });
   });
 
 });

@@ -4,10 +4,6 @@ Takes an eBay search link, scrapes the items from the page and will notify you o
 
 
 ## TO DO
-### Login Page
-Angular
-https://jasonwatmore.com/post/2022/11/29/angular-14-user-registration-and-login-example-tutorial
-NodeJS
-https://jasonwatmore.com/post/2022/07/01/nodejs-ms-sql-server-simple-api-for-authentication-registration-and-user-management
-
-
+### Server
+Reconfigure exclude_keywords (both in POST monitor requests and MySQL database), so that it is an array of strings to be excluded. This is to give fuller customization.
+    Example: Right now excluded_keywords could be "pro max", which would exclude both pro and max. The revision to an array could exclude the string "pro max" together and still provide the pro results.

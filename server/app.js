@@ -3,10 +3,10 @@ require('dotenv').config();
 
 const createError = require('http-errors');
 const express = require('express');
-const path = require('path');
+// const path = require('path');
 const cookieParser = require('cookie-parser');
 const session = require('express-session');
-const csrf = require('csurf');
+// const csrf = require('csurf');
 const passport = require('passport');
 const logger = require('morgan');
 const cors = require('cors');
@@ -16,8 +16,6 @@ const MySQLStore = require('express-mysql-session')(session);
 const db = require('./db'); // Import the MySQL pool
 const indexRouter = require('./routes/index');
 const authRouter = require('./routes/auth');
-// This is used to add all scrapers saved in db on startup
-var { addScraper } = require('./scrape');
 
 
 
@@ -103,16 +101,5 @@ app.use(function(req, res, next) {
   next(createError(404));
 });
 
-db.pool.query('SELECT * FROM monitors', function(error, results, fields) {
-  if (error) { 
-    console.error("Error fetching monitors on startup:", error);
-    return;
-  }
-  
-  results.forEach(function(monitor) {
-    addScraper(monitor.keywords, monitor.chatid, 60000);
-  });
-
-});
 
 module.exports = app;
