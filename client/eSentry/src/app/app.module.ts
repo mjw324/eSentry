@@ -10,8 +10,13 @@ import { TableModule } from 'primeng/table';
 import { DialogModule } from 'primeng/dialog';
 import { InputTextModule } from 'primeng/inputtext';
 import { InputTextareaModule } from 'primeng/inputtextarea';
+import { ToastModule } from 'primeng/toast';
 
-import { GoogleLoginProvider, GoogleSigninButtonModule, SocialAuthServiceConfig } from '@abacritt/angularx-social-login';
+import {
+  GoogleLoginProvider,
+  GoogleSigninButtonModule,
+  SocialAuthServiceConfig,
+} from '@abacritt/angularx-social-login';
 
 import { MonitorListComponent } from './components/monitor-list/monitor-list.component';
 import { NewMonitorMenuComponent } from './components/new-monitor-menu/new-monitor-menu.component';
@@ -20,7 +25,7 @@ import { AppComponent } from './app.component';
 import { WelcomeComponent } from './components/welcome/welcome.component';
 import { HomeComponent } from './components/home/home.component';
 import { HttpClientModule } from '@angular/common/http';
-
+import { MessageService } from 'primeng/api';
 
 @NgModule({
   declarations: [
@@ -28,7 +33,7 @@ import { HttpClientModule } from '@angular/common/http';
     WelcomeComponent,
     HomeComponent,
     MonitorListComponent,
-    NewMonitorMenuComponent
+    NewMonitorMenuComponent,
   ],
   imports: [
     BrowserModule,
@@ -44,22 +49,28 @@ import { HttpClientModule } from '@angular/common/http';
     HttpClientModule,
     InputTextareaModule,
     InputTextModule,
+    ToastModule,
   ],
-  providers: [{
-    provide: 'SocialAuthServiceConfig',
-    useValue: {
-      autoLogin: true, //keeps the user signed in
-      providers: [
-        {
-          id: GoogleLoginProvider.PROVIDER_ID,
-          provider: new GoogleLoginProvider('868479157526-e4d3rgraqcudfi9rgqflimjb9qogv1mh.apps.googleusercontent.com') // your client id
-        }
-      ],
-      onError: (err: any) => {
-        console.error(err);
-      }
-    } as SocialAuthServiceConfig,
-  }],
-  bootstrap: [AppComponent]
+  providers: [
+    {
+      provide: 'SocialAuthServiceConfig',
+      useValue: {
+        autoLogin: true, //keeps the user signed in
+        providers: [
+          {
+            id: GoogleLoginProvider.PROVIDER_ID,
+            provider: new GoogleLoginProvider(
+              '868479157526-e4d3rgraqcudfi9rgqflimjb9qogv1mh.apps.googleusercontent.com'
+            ), // your client id
+          },
+        ],
+        onError: (err: any) => {
+          console.error(err);
+        },
+      } as SocialAuthServiceConfig,
+    },
+    MessageService,
+  ],
+  bootstrap: [AppComponent],
 })
-export class AppModule { }
+export class AppModule {}
