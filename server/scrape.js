@@ -17,6 +17,7 @@ const db = require('./db');
 async function retrieveMonitor(url, chatid, monitors, keywords) {
   const response = await axios(url);
   const html = await response.data;
+
   const $ = cheerio.load(html);
   const items = $('li.s-item.s-item__pl-on-bottom');
   monitors.newScraped = [];
@@ -51,8 +52,10 @@ async function retrieveMonitor(url, chatid, monitors, keywords) {
         difference.push(monitors.newScraped[i]);
       }
     }
-    console.log("Difference between newScrapedMonitors and scrapedMonitors: ");
-    console.log(difference);
+    if(!difference.length){
+      console.log("No new results for " + keywords);
+    }
+
     if (difference.length > 0) { // If there is a difference, the first three will be sent to the user
       
       // The following commented out code is for every item found in the difference. For less spam on the user's end, only the first three will be sent
@@ -67,6 +70,8 @@ async function retrieveMonitor(url, chatid, monitors, keywords) {
       //     if (error) console.log(error);
       //   });
       // });
+      console.log("Difference between newScrapedMonitors and scrapedMonitors: ");
+      console.log(difference);
       
       for (let i = 0; i < Math.min(3, difference.length); i++) {
         let item = difference[i];

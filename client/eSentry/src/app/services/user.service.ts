@@ -21,4 +21,7 @@ export class UserService {
   getCurrentUser(): User {
     return this.currentUser;
   }
+  getCurrentUserID(): string {
+    return this.currentUser.id;
+  }
 }

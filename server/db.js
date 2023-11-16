@@ -19,14 +19,15 @@ const dbConfig = {
 // This avoids creating a connection to the database each time it needs accessed by user logging in/configuriing their monitor
 const pool = mysql.createPool(dbConfig);
 
-
+// name: socialUser.name,
+// email: socialUser.email,
+// id: socialUser.id
 pool.query(`
   CREATE TABLE IF NOT EXISTS users (
     id INT AUTO_INCREMENT PRIMARY KEY,
-    username VARCHAR(255) UNIQUE,
-    hashed_password VARBINARY(255),
-    salt VARBINARY(255),
-    name VARCHAR(255)
+    social_id VARCHAR(255) UNIQUE,
+    name VARCHAR(255),
+    email VARCHAR(255)
   )
 `);
 
@@ -46,6 +47,7 @@ pool.query(`
 pool.query(`
   CREATE TABLE IF NOT EXISTS monitors (
     id INT AUTO_INCREMENT PRIMARY KEY,
+    userid VARCHAR(255) NOT NULL,
     keywords VARCHAR(255) NOT NULL,
     chatid VARCHAR(255) NOT NULL,
     recentlink VARCHAR(255),

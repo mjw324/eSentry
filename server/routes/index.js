@@ -121,15 +121,26 @@ const router = express.Router();
 //   });
 // });
 
-// GET: Fetch all monitors
+// GET: Fetch all monitors for a given chatid
 router.get('/monitors', function (req, res, next) {
-  db.pool.query('SELECT * FROM monitors', function (error, results, fields) {
+  // Extract 'userid' from the request query parameters
+  const userid = req.query.userid;
+  // Validate chatid if necessary
+  if (!userid) {
+    return res.status(400).send("UserID is required");
+  }
+
+  // Modified SQL query to select monitors with the given chatid and userid
+  const query = 'SELECT * FROM monitors WHERE userid = ?';
+
+  db.pool.query(query, [userid], function (error, results, fields) {
     if (error) { return next(error); }
 
-    // Respond with the list of monitors
+    // Respond with the list of monitors for the given chatid
     res.json(results);
   });
 });
+
 
 // POST: Add a new monitor
 router.post('/monitors', function (req, res, next) {
@@ -149,15 +160,16 @@ router.post('/monitors', function (req, res, next) {
   const monitorObj = req.body;
   
 
-  if (!monitorObj.keywords || !monitorObj.chatid) {
+  if (!monitorObj.keywords || !monitorObj.chatid || !monitorObj.userid) {
     // If 'keywords' or 'chatid' is not provided, respond with an error status and message
-    return res.status(400).json({ message: 'Keywords and chatid are required' });
+    return res.status(400).json({ message: 'Keywords, chatid, and userid are required' });
   }
   db.pool.query(
-    'INSERT INTO monitors (keywords, chatid, recentlink, min_price, max_price, condition_new, condition_open_box, condition_used, exclude_keywords) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)', 
+    'INSERT INTO monitors (keywords, chatid, userid, recentlink, min_price, max_price, condition_new, condition_open_box, condition_used, exclude_keywords) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)', 
     [
       monitorObj.keywords, 
       monitorObj.chatid, 
+      monitorObj.userid,
       null, // recentlink is always null/non-existent when scraper is first initialized
       monitorObj.min_price || null, 
       monitorObj.max_price || null, 
