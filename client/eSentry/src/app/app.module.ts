@@ -60,7 +60,7 @@ import { MessageService } from 'primeng/api';
           {
             id: GoogleLoginProvider.PROVIDER_ID,
             provider: new GoogleLoginProvider(
-              '868479157526-e4d3rgraqcudfi9rgqflimjb9qogv1mh.apps.googleusercontent.com'
+              '248593758771-0hkuh6k2n2d9u6qaqvsdibkfvnukmriq.apps.googleusercontent.com'
             ), // your client id
           },
         ],
