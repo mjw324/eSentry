@@ -19,25 +19,6 @@ export class MonitorService {
   }
 
   async fetchMonitors(userid: string) {
-    // const params = new HttpParams().set('userid', userid);
-    // this.http
-    //   .get<any>(environment.url + '/monitors', { params })
-    //   .subscribe({
-    //     next: (monitors) => {
-    //       this.monitors.next(monitors);
-    //     },
-    //     error: (err) =>
-    //       this.messageService.add({
-    //         severity: 'error',
-    //         summary: 'Fetch Error',
-    //         detail: err.message,
-    //       }),
-    //     complete: () => {
-    //       console.info('Request Complete');
-    //     },
-    //   });
-
-
       const data = await fetch(environment.url + '/monitors',{
         method:"GET",
         headers:{
@@ -48,9 +29,6 @@ export class MonitorService {
         this.monitors.next([])
         return
       })
-
-      
-
       data?.json().then((monitors)=>{
         this.monitors.next(monitors)
       })
