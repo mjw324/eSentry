@@ -18,12 +18,17 @@ export class MonitorListComponent implements OnInit, OnDestroy {
   constructor(public monitorService: MonitorService, public userService: UserService) { }
 
   ngOnInit(): void {
-    // My plan for fetching monitors is instead of intervals, the server sends a POST which should trigger update on client
-    this.intervalID = setInterval(this.monitorService.fetchMonitors, 10000)
-    this.monitorService.fetchMonitors(this.userService.getCurrentUserID());
-    this.monitorSubscription = this.monitorService.getMonitors().subscribe(monitors => {
-      this.monitors = monitors;
+    this.intervalID = setInterval(() => {
+      this.monitorService.fetchMonitors(this.userService.getCurrentUserID())
+    }, 10000)
+
+    this.monitorSubscription = this.monitorService.getMonitors().subscribe({
+      next: (monitors) => {
+        this.monitors = monitors;
+      }
     });
+
+    this.monitorService.fetchMonitors(this.userService.getCurrentUserID());
   }
 
   ngOnDestroy(): void {

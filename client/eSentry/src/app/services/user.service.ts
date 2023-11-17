@@ -24,4 +24,8 @@ export class UserService {
   getCurrentUserID(): string {
     return this.currentUser.id;
   }
+
+  isLoggedIn():boolean{
+    return this.currentUser != DEFAULT_USER
+  }
 }
