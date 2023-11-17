@@ -18,7 +18,6 @@ export class MonitorListComponent implements OnInit, OnDestroy {
   constructor(public monitorService: MonitorService, public userService: UserService) { }
 
   ngOnInit(): void {
-
     this.intervalID = setInterval(() => {
       this.monitorService.fetchMonitors(this.userService.getCurrentUserID())
     }, 10000)
@@ -30,12 +29,6 @@ export class MonitorListComponent implements OnInit, OnDestroy {
     });
 
     this.monitorService.fetchMonitors(this.userService.getCurrentUserID());
-
-    // this.monitorSubscription = this.monitorService.getMonitors().subscribe(monitors => {
-    //   console.log(monitors);
-    //   this.monitors = monitors;
-    // });
-
   }
 
   ngOnDestroy(): void {

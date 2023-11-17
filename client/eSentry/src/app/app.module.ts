@@ -11,6 +11,7 @@ import { DialogModule } from 'primeng/dialog';
 import { InputTextModule } from 'primeng/inputtext';
 import { InputTextareaModule } from 'primeng/inputtextarea';
 import { ToastModule } from 'primeng/toast';
+import { MessageService } from 'primeng/api';
 
 import {
   GoogleLoginProvider,
@@ -25,7 +26,6 @@ import { AppComponent } from './app.component';
 import { WelcomeComponent } from './components/welcome/welcome.component';
 import { HomeComponent } from './components/home/home.component';
 import { HttpClientModule } from '@angular/common/http';
-import { MessageService } from 'primeng/api';
 
 @NgModule({
   declarations: [
@@ -60,7 +60,8 @@ import { MessageService } from 'primeng/api';
           {
             id: GoogleLoginProvider.PROVIDER_ID,
             provider: new GoogleLoginProvider(
-              '248593758771-0hkuh6k2n2d9u6qaqvsdibkfvnukmriq.apps.googleusercontent.com'
+              //'248593758771-0hkuh6k2n2d9u6qaqvsdibkfvnukmriq.apps.googleusercontent.com' "new client ID"
+              '868479157526-e4d3rgraqcudfi9rgqflimjb9qogv1mh.apps.googleusercontent.com'
             ), // your client id
           },
         ],

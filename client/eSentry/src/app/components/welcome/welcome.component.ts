@@ -20,7 +20,7 @@ export class WelcomeComponent implements OnInit {
 
   ngOnInit() {
     this.socialAuthService.authState.subscribe((user) => {
-      if (user != null) {
+      if (user != null) { //This might need to be changed if the user wants to hit "back" and be brought to logout
         this.userService.setCurrentUser(user);
         this.router.navigate(['/home']);
       }
