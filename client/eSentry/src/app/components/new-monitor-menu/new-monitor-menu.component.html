@@ -1,14 +1,65 @@
-<span style="margin-top: 20px; margin-bottom: 30px;display: flex; flex-direction: column; gap:.5rem">
-    <label htmlFor="keywords">Keywords seperated by space</label>
-    <input pInputText id="keywords" [(ngModel)]="keywords" />
+<span class="monitor_element">
+  <label htmlFor="keywords">Enter keywords</label>
+  <p-chips [(ngModel)]="keywords" separator=" "></p-chips>
 </span>
 
-
-<span  style="margin-bottom: 20px; display: flex; flex-direction: column; gap: .5rem;">
-    <label htmlFor="telegramID">Telegram User ID</label>
-    <input pInputText id="telegramID" aria-describedby="telegramID-help" [(ngModel)]="telegramID" />
-    <small id="telegramID-help">For help needed <a href="https://www.alphr.com/find-chat-id-telegram/" target="_blank">click
-            here</a></small>
+<span class="monitor_element">
+  <label htmlFor="telegramID">Telegram User ID</label>
+  <input
+    type="number"
+    pInputText
+    id="telegramID"
+    aria-describedby="telegramID-help"
+    [(ngModel)]="telegramID"
+  />
+  <small id="telegramID-help"
+    >For help needed
+    <a href="https://www.alphr.com/find-chat-id-telegram/" target="_blank"
+      >click here</a
+    ></small
+  >
 </span>
 
-<button pButton type="button" label="Save" (click)="saveKeywords()" [disabled]="keywords==''||telegramID==''"></button>
+<span class="monitor_element">
+  <label htmlFor="minPrice">Minimum Price</label>
+  <input type="number" pInputText [(ngModel)]="minPrice" />
+  <p-slider
+    [(ngModel)]="minPrice"
+    [min]="0"
+    [max]="2000"
+    class="w-full"
+  ></p-slider>
+</span>
+
+<span class="monitor_element">
+  <label htmlFor="maxPrice">Maximum Price</label>
+  <input type="number" pInputText [(ngModel)]="maxPrice" />
+  <p-slider
+    [(ngModel)]="maxPrice"
+    [min]="0"
+    [max]="2000"
+    class="w-full"
+  ></p-slider>
+</span>
+
+<span class="monitor_element">
+  <label htmlFor="conditions">Condition</label>
+  <p-selectButton
+    [options]="conditionOptions"
+    [(ngModel)]="selectedConditions"
+    [multiple]="true"
+  ></p-selectButton>
+</span>
+
+<span class="monitor_element">
+  <label htmlFor="excludeKeywords">Exclude Keywords</label>
+  <p-chips [(ngModel)]="excludeKeywords" separator=" "></p-chips>
+</span>
+
+<button
+  pButton
+  type="button"
+  label="Save"
+  (click)="saveMonitor()"
+  [disabled]="!isValidMonitor()"
+></button>
