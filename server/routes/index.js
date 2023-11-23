@@ -124,7 +124,7 @@ const router = express.Router();
 // GET: Fetch all monitors for a given chatid
 router.get('/monitors', function (req, res, next) {
   // Extract 'userid' from the request query parameters
-  const userid = req.query.userid;
+  const userid = req.headers.userid;
   // Validate chatid if necessary
   if (!userid) {
     return res.status(400).send("UserID is required");

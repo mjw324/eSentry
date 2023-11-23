@@ -12,6 +12,9 @@ import { InputTextModule } from 'primeng/inputtext';
 import { InputTextareaModule } from 'primeng/inputtextarea';
 import { ToastModule } from 'primeng/toast';
 import { MessageService } from 'primeng/api';
+import { SelectButtonModule } from 'primeng/selectbutton';
+import { SliderModule } from 'primeng/slider';
+import { ChipsModule } from 'primeng/chips';
 
 import {
   GoogleLoginProvider,
@@ -26,6 +29,7 @@ import { AppComponent } from './app.component';
 import { WelcomeComponent } from './components/welcome/welcome.component';
 import { HomeComponent } from './components/home/home.component';
 import { HttpClientModule } from '@angular/common/http';
+import { environment } from 'src/environments/environment';
 
 @NgModule({
   declarations: [
@@ -41,6 +45,9 @@ import { HttpClientModule } from '@angular/common/http';
     FormsModule,
     ButtonModule,
     GoogleSigninButtonModule,
+    SelectButtonModule,
+    SliderModule,
+    ChipsModule,
     MenubarModule,
     AvatarModule,
     TableModule,
@@ -60,9 +67,8 @@ import { HttpClientModule } from '@angular/common/http';
           {
             id: GoogleLoginProvider.PROVIDER_ID,
             provider: new GoogleLoginProvider(
-              //'248593758771-0hkuh6k2n2d9u6qaqvsdibkfvnukmriq.apps.googleusercontent.com' "new client ID"
-              '868479157526-e4d3rgraqcudfi9rgqflimjb9qogv1mh.apps.googleusercontent.com'
-            ), // your client id
+              environment.google_client_id,
+            ), // eSentry client id
           },
         ],
         onError: (err: any) => {
@@ -74,4 +80,4 @@ import { HttpClientModule } from '@angular/common/http';
   ],
   bootstrap: [AppComponent],
 })
-export class AppModule {}
+export class AppModule { }
