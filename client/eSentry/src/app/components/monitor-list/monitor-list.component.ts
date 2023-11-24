@@ -31,6 +31,18 @@ export class MonitorListComponent implements OnInit, OnDestroy {
     this.monitorService.fetchMonitors(this.userService.getCurrentUserID());
   }
 
+  deleteMonitor(monitorId: number) {
+    const userId = this.userService.getCurrentUserID();
+    this.monitorService.deleteMonitor(monitorId, userId).subscribe({
+      next: () => {
+        this.monitorService.fetchMonitors(userId);
+      },
+      error: (error) => {
+        console.error('Error deleting monitor:', error);
+      }
+    });
+  }
+  
   ngOnDestroy(): void {
     this.monitorSubscription.unsubscribe();
     clearInterval(this.intervalID);

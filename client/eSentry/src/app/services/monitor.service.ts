@@ -41,4 +41,8 @@ export class MonitorService {
         this.fetchMonitors(userid);
       });
   }
+  
+  deleteMonitor(monitorid: number, userid: string) {
+    return this.http.delete(environment.url + '/monitors/' + monitorid, { headers: { userid: userid }});
+  }
 }
