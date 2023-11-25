@@ -1,5 +1,4 @@
-import { Component, OnDestroy, OnInit } from '@angular/core';
-import { Subscription } from 'rxjs';
+import { Component, OnInit } from '@angular/core';
 import { Monitor } from 'src/app/models/monitor.model';
 import { MonitorService } from 'src/app/services/monitor.service';
 import { UserService } from 'src/app/services/user.service';
@@ -10,41 +9,29 @@ import { UserService } from 'src/app/services/user.service';
   templateUrl: './monitor-list.component.html',
   styleUrls: ['./monitor-list.component.css']
 })
-export class MonitorListComponent implements OnInit, OnDestroy {
+export class MonitorListComponent implements OnInit {
 
-  monitors: Monitor[] = [];
+  monitors$ = this.monitorService.getMonitors();
   intervalID: any;
-  monitorSubscription: Subscription = new Subscription();
+
   constructor(public monitorService: MonitorService, public userService: UserService) { }
 
   ngOnInit(): void {
     this.intervalID = setInterval(() => {
       this.monitorService.fetchMonitors(this.userService.getCurrentUserID())
-    }, 10000)
-
-    this.monitorSubscription = this.monitorService.getMonitors().subscribe({
-      next: (monitors) => {
-        this.monitors = monitors;
-      }
-    });
-
+    }, 10000);
     this.monitorService.fetchMonitors(this.userService.getCurrentUserID());
   }
 
   deleteMonitor(monitorId: number) {
     const userId = this.userService.getCurrentUserID();
     this.monitorService.deleteMonitor(monitorId, userId).subscribe({
-      next: () => {
-        this.monitorService.fetchMonitors(userId);
-      },
-      error: (error) => {
-        console.error('Error deleting monitor:', error);
-      }
+      next: () => this.monitorService.fetchMonitors(userId),
+      error: (error) => console.error('Error deleting monitor:', error)
     });
   }
-  
+
   ngOnDestroy(): void {
-    this.monitorSubscription.unsubscribe();
     clearInterval(this.intervalID);
   }
 }

@@ -52,9 +52,17 @@ export class NewMonitorMenuComponent {
       monitorRequest.condition_used = true;
     }
 
-    this.monitorService.addMonitor(monitorRequest, this.userService.getCurrentUserID());
-    this.resetForm();
-    this.dialogService.closeNewMonitorDialog();
+    this.monitorService.addMonitor(monitorRequest, this.userService.getCurrentUserID())
+    .subscribe({
+        next: (monitor) => {
+            console.log('Monitor added:', monitor);
+            this.resetForm();
+            this.dialogService.closeNewMonitorDialog();
+        },
+        error: (error) => {
+            console.error('Error adding monitor:', error);
+        }
+    });
   }
 
   isValidMonitor() {
