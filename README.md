@@ -2,6 +2,8 @@
 
 eSentry is a powerful web application designed to monitor eBay for items as requested by the users! It monitors item listings real-time and notifies users of any new listings that meet their filters. eSentry then sends a Telegram message within seconds of the new listing to the user.
 
+**Try eSentry Live!** [eSentry](https://esentry-notify.com/)
+
 ## Features
 
 - **eBay Listing Monitoring**: Input an eBay item you desire and let eSentry do the rest. It will continuously monitor the search results and notify you of any new listings.
@@ -12,7 +14,7 @@ eSentry is a powerful web application designed to monitor eBay for items as requ
   
 
 ## How to Setup eSentry Locally
-Sidenote: This is not recommended as it is complex to run locally. eSentry will soon be hosted on a domain I created!
+Sidenote: Running locally requires creating your own OAuth 2.0 Client ID, MySQL Database, and Telegram Bot.
 ### Prerequisites
 
 - Node.js
@@ -64,12 +66,6 @@ Sidenote: This is not recommended as it is complex to run locally. eSentry will 
 
 1. **Access the Client Interface**: Open your browser and navigate to `http://localhost:3000`.
 
-2. **Input eBay Search Link**: On the homepage, input your desired eBay search link.
+2. **Create eBay Monitor**: Once logged in, input your desired eBay search parameters and the notification method.
 
-3. **Specify Requirements**: Define any specific requirements or keywords you want to exclude.
-
-4. **Receive Notifications**: Once set up, you'll start receiving notifications on Telegram for any updates that match your criteria.
-
-## To-Do
-
-- Reconfigure `exclude_keywords` (both in POST monitor requests and MySQL database) to be an array of strings for better customization.
+3. **Receive Notifications**: Once set up, you'll start receiving notifications for any new listings that match your criteria.
