@@ -1,5 +1,5 @@
 <h1>Monitor List</h1>
-<p-table [value]="monitors">
+<p-table [value]="(monitors$ | async) ?? []">
   <ng-template pTemplate="header">
     <tr>
       <th>Keywords</th>
@@ -9,6 +9,7 @@
       <th>Condition(s)</th>
       <th>Excluded Keywords</th>
       <th>Most Recent Link</th>
+      <th></th>
     </tr>
   </ng-template>
   <ng-template pTemplate="body" let-monitor>
@@ -33,44 +34,31 @@
           </ng-template>
 
           <ng-template [ngIf]="monitor.condition_used">
-            <ng-container
-              *ngIf="monitor.condition_new || monitor.condition_open_box"
-              >,
-            </ng-container>
+            <ng-container *ngIf="monitor.condition_new || monitor.condition_open_box">, </ng-container>
             <span>Used</span>
           </ng-template>
 
-          <ng-template
-            [ngIf]="
-              !monitor.condition_new &&
-              !monitor.condition_open_box &&
-              !monitor.condition_used
-            "
-          >
+          <ng-template [ngIf]="!monitor.condition_new && !monitor.condition_open_box && !monitor.condition_used">
             <span>None</span>
           </ng-template>
         </ng-container>
       </td>
 
       <td>
-        <span *ngIf="monitor.exclude_keywords">{{
-          monitor.exclude_keywords
-        }}</span>
+        <span *ngIf="monitor.exclude_keywords">{{ monitor.exclude_keywords }}</span>
       </td>
       <td>
-        <a
-          *ngIf="monitor.recentlink"
-          [href]="monitor.recentlink"
-          target="_blank"
-          >eBay Link</a
-        >
+        <a *ngIf="monitor.recentlink" [href]="monitor.recentlink" target="_blank">eBay Link</a>
         <span *ngIf="!monitor.recentlink">None</span>
+      </td>
+      <td>
+        <p-button label="Delete" styleClass="p-button-rounded p-button-danger" icon="pi pi-trash" (click)="deleteMonitor(monitor.id)"></p-button>
       </td>
     </tr>
   </ng-template>
   <ng-template pTemplate="emptymessage">
     <tr>
-      <td colspan="7">No monitors found</td>
+      <td colspan="8">No monitors found</td>
     </tr>
   </ng-template>
 </p-table>

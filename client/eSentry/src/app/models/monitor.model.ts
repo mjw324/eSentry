@@ -1,12 +1,12 @@
 export type Monitor = {
     id: number;
     keywords: string;
-    chatID: string;
+    chatid: string;
     recentlink?: string;
-    minprice?: number;
-    maxprice?: number;
-    excludekeywords?: string;
-    conditionnew?: boolean;
-    conditionopenbox?: boolean;
-    conditionused?: boolean;
+    min_price?: number;
+    max_price?: number;
+    exclude_keywords?: string;
+    condition_new?: boolean;
+    condition_open_box?: boolean;
+    condition_used?: boolean;
 }

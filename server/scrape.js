@@ -3,6 +3,8 @@ const cheerio = require('cheerio');
 const TelegramBot = require('node-telegram-bot-api');
 const bot = new TelegramBot(process.env.TELEGRAM_BOT_TOKEN, { polling: true });
 const db = require('./db');
+const monitorIntervals = new Map();
+
 
 // keywords object JSON format. Example is for a "new" condition "iphone" with a price range of $100-$500, excluding "pro" and "max" keywords
 // {
@@ -52,14 +54,14 @@ async function retrieveMonitor(url, chatid, monitors, keywords) {
         difference.push(monitors.newScraped[i]);
       }
     }
-    if(!difference.length){
+    if (!difference.length) {
       console.log("No new results for " + keywords);
     }
 
     if (difference.length > 0) { // If there is a difference, the first three will be sent to the user
-      
+
       // The following commented out code is for every item found in the difference. For less spam on the user's end, only the first three will be sent
-      
+
       // difference.forEach(item => {
       //   console.log(`New Item Found! Link: ${item.link}`);
       //   bot.sendMessage(chatid, `${item.name} for ${item.price} Link: ${item.link}`);
@@ -72,11 +74,11 @@ async function retrieveMonitor(url, chatid, monitors, keywords) {
       // });
       console.log("Difference between newScrapedMonitors and scrapedMonitors: ");
       console.log(difference);
-      
+
       for (let i = 0; i < Math.min(3, difference.length); i++) {
         let item = difference[i];
         console.log(`New Item Found! Link: ${item.link}`);
-        bot.sendMessage(chatid, `🔍 <b>Search:</b> \n${keywords} \n\n🏷️ <b>Product:</b> \n${item.name} \n\n💰 <b>Price:</b> \n${item.price}\n\n<a href="${item.link}">🛒 Item on eBay</a>`, {parse_mode: "HTML"});
+        bot.sendMessage(chatid, `🔍 <b>Search:</b> \n${keywords} \n\n🏷️ <b>Product:</b> \n${item.name} \n\n💰 <b>Price:</b> \n${item.price}\n\n<a href="${item.link}">🛒 Item on eBay</a>`, { parse_mode: "HTML" });
         // Store the link of the most recent item found in the database
         db.pool.query('UPDATE monitors SET recentlink = ? WHERE keywords = ? AND chatid = ?', [
           item.link, keywords, chatid
@@ -95,7 +97,7 @@ function addScraper(monitorObj, milliseconds) {
   var url = `https://www.ebay.com/sch/i.html?_from=R40&_sacat=0&LH_BIN=1&_sop=10&rt=nc&_nkw=`;
 
   // take specified keywords and replace whitespace chars with the char '+' for URL
-  url+= monitorObj.keywords.replace(/ /g, "+");
+  url += monitorObj.keywords.replace(/ /g, "+");
   // add exclude keywords to URL if specified
   monitorObj.exclude_keywords ? url += `+-${monitorObj.exclude_keywords.replace(/ /g, "+-")}` : null;
   // add conditions to url if specified
@@ -114,13 +116,27 @@ function addScraper(monitorObj, milliseconds) {
   monitorObj.max_price ? url += `&_udhi=${monitorObj.max_price}` : null;
 
   // console.log(`URL: ${url}`);
-  let monitors = {scraped: [], newScraped: []};
+  let monitors = { scraped: [], newScraped: [] };
   // setInterval will call retrieveMonitor in the specified interval of milliseconds
-  setInterval(() => {
+  const intervalID = setInterval(() => {
     retrieveMonitor(url, monitorObj.chatid, monitors, monitorObj.keywords).catch(error => {
       console.error(`Failed to retrieve monitor for keywords "${monitorObj.keywords}" and chatid "${monitorObj.chatid}":`, error);
     });
   }, milliseconds);
+  console.log(`Starting scraper for monitor ID ${monitorObj.id} with interval ID ${intervalID}`);
+  monitorIntervals.set(monitorObj.id, intervalID)
+  console.log(`Current monitorIntervals:`, monitorIntervals)
 }
 
-module.exports.addScraper = addScraper;
+function stopScraper(monitorID) {
+  const intervalID = monitorIntervals.get(monitorID)
+  if (intervalID) {
+    console.log(`Stopping scraper for monitor ID ${monitorID} with interval ID ${intervalID}`)
+    clearInterval(intervalID)
+    monitorIntervals.delete(monitorID)
+  } else {
+    console.log(`No active scraper interval found for monitor ID ${monitorID}.`)
+  }
+}
+
+module.exports = { addScraper, stopScraper };
