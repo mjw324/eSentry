@@ -1,8 +1,88 @@
-h1 {
-    padding-top: 100px;
-    font-size: 56px;
-}
+.info-section {
+    display: flex;
+    justify-content: space-between;
+    align-items: stretch;
+    margin: auto;
+    padding: 20px;
+  }
+  
+  #quick-info {
+    background-color: #ffffeb;
+  }
+  
+  .quick-info-left, .quick-info-right {
+    text-align: center;
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    justify-content: flex-start;
+    height: 100%;
+  }
 
-p {
-    padding-bottom: 20px;
-}
+  #setting-up-monitor {
+    background-color: #f4743b;
+  }
+  
+  .monitor-left, .monitor-right {
+    display: flex;
+    align-items: center;
+  }
+  
+  .monitor-left .monitor-image, .monitor-right .monitor-description {
+    flex-basis: 50%; /* Each child takes up half of the parent */
+  }
+  
+  .monitor-title {
+
+  }
+
+  .monitor-image {
+    max-width: 100%; /* Ensures image does not overflow its container */
+    height: auto; /* Maintain aspect ratio */
+  }
+  
+  .monitor-description {
+    color: #ffffeb;
+    font-size: 2em;
+    background-color: #3c6e71;
+    border-radius: 15px;
+    padding: 15px;
+    margin: 10px;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+    flex-grow: 1;
+  }
+  
+  /* Stay Informed Div Styles */
+  #stay-informed {
+    background-color: #3c6e71;
+  }
+  
+  .informed-left, .informed-right {
+    display: flex;
+    align-items: center;
+  }
+  
+  .informed-left .informed-description, .informed-right .informed-image {
+    flex-basis: 50%; /* Each child takes up half of the parent */
+  }
+  
+  .informed-title {
+
+  }
+  
+  .informed-image {
+    max-width: 100%; /* Ensures image does not overflow its container */
+    height: auto; /* Maintain aspect ratio */
+  }
+  
+  .informed-description {
+    color: #ffffeb;
+    font-size: 1.5em;
+    background-color: #f4743b;
+    border-radius: 15px;
+    padding: 15px;
+    margin: 10px;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+    flex-grow: 1;
+  }
+  
