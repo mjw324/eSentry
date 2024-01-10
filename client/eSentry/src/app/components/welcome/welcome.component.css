@@ -3,86 +3,117 @@
     justify-content: space-between;
     align-items: stretch;
     margin: auto;
-    padding: 20px;
+    padding: 10%;
   }
   
   #quick-info {
     background-color: #ffffeb;
+    height: 100vh;
+    flex-grow: 1;
   }
   
-  .quick-info-left, .quick-info-right {
-    text-align: center;
-    flex: 1;
+  .quick-info-title {
+    color: #3c6e71;
+    text-align: left;
+    font-weight: bolder;
+    font-size: 500%;
+  }
+
+  .quick-info-title .highlight {
+    color: #f4743b;
+  }
+
+  .quick-info-description {
+    color: #3c6e71;
+    font-size: 2.5em;
+    font-weight: bold;
+    text-align: left;
+  }
+
+  /* Styling for left and right sections */
+  .quick-info-left {
+    flex-basis: 50%;
     display: flex;
     flex-direction: column;
     justify-content: flex-start;
     height: 100%;
   }
+  .quick-info-right {
+    flex-basis: 50%;
+    display: flex; /* Flexbox to align items vertically */
+    flex-direction: column; /* Stack children vertically */
+    justify-content: center; /* Center content vertically */
+    align-items: center; /* Center content horizontally */
+  }
+  
+  .quick-info-icon {
+    width: 20vw;
+  }
+  
+  .quick-info-icon-text {
+    color: #3c6e71;
+    font-weight: bolder;
+    margin: 0;
+    font-size: 5vw;
+  }
+  
 
   #setting-up-monitor {
     background-color: #f4743b;
+    height: 100vh;
   }
   
-  .monitor-left, .monitor-right {
+  .monitor-left, .monitor-right, .informed-left, .informed-right {
+    flex-basis: 50%; /* Allocate 50% width to each side */
+    flex-direction: column;
     display: flex;
-    align-items: center;
+    align-items: normal;
+    justify-content: center; /* Center the content within each section */
   }
   
-  .monitor-left .monitor-image, .monitor-right .monitor-description {
-    flex-basis: 50%; /* Each child takes up half of the parent */
-  }
-  
-  .monitor-title {
-
-  }
-
-  .monitor-image {
-    max-width: 100%; /* Ensures image does not overflow its container */
-    height: auto; /* Maintain aspect ratio */
-  }
-  
-  .monitor-description {
+  .monitor-title, .informed-title {
+    text-align: center;
+    font-size: 2.5vw;
     color: #ffffeb;
-    font-size: 2em;
-    background-color: #3c6e71;
-    border-radius: 15px;
-    padding: 15px;
-    margin: 10px;
-    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+  }
+
+  .informed-image, .monitor-image{
+    max-width: 100%; /* Ensures image does not overflow its container */
+    max-height: 100%;
+    height: auto;
+    width: auto;
+    object-fit: contain;
     flex-grow: 1;
+  }
+  
+  .informed-description {
+    background-color: #f4743b;
+    box-shadow: -1vw 1vw 0vw #ffffebba;
+  }
+
+  .monitor-description {
+    background-color: #3c6e71;
+    box-shadow: 1vw 1vw 0vw #ffffebba;
+  }
+
+  .monitor-description, .informed-description {
+    color: #ffffeb;
+    font-size: 2vw;
+    border-radius: 15px;
+    padding: 3vw; /* Relative padding */
+    margin: 1vw; /* Relative margin */
+    flex-grow: 1;
+    text-align: left;
+    display: flex; /* Added for flexbox layout */
+    align-items: center; /* Center text vertically */
+    justify-content: center; /* Center text horizontally */
+    height: auto; /* Adjust height as needed */
+    max-height: 45vh; /* Maximum height relative to viewport height */
   }
   
   /* Stay Informed Div Styles */
   #stay-informed {
     background-color: #3c6e71;
-  }
-  
-  .informed-left, .informed-right {
-    display: flex;
-    align-items: center;
-  }
-  
-  .informed-left .informed-description, .informed-right .informed-image {
-    flex-basis: 50%; /* Each child takes up half of the parent */
-  }
-  
-  .informed-title {
-
-  }
-  
-  .informed-image {
-    max-width: 100%; /* Ensures image does not overflow its container */
-    height: auto; /* Maintain aspect ratio */
-  }
-  
-  .informed-description {
-    color: #ffffeb;
-    font-size: 1.5em;
-    background-color: #f4743b;
-    border-radius: 15px;
-    padding: 15px;
-    margin: 10px;
-    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
-    flex-grow: 1;
+    height: 100vh;
   }
   
