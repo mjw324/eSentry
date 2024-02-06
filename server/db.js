@@ -19,28 +19,6 @@ const dbConfig = {
 // This avoids creating a connection to the database each time it needs accessed by user logging in/configuriing their monitor
 const pool = mysql.createPool(dbConfig);
 
-// name: socialUser.name,
-// email: socialUser.email,
-// id: socialUser.id
-pool.query(`
-  CREATE TABLE IF NOT EXISTS users (
-    id INT AUTO_INCREMENT PRIMARY KEY,
-    social_id VARCHAR(255) UNIQUE,
-    name VARCHAR(255),
-    email VARCHAR(255)
-  )
-`);
-
-pool.query(`
-  CREATE TABLE IF NOT EXISTS federated_credentials (
-    id INT AUTO_INCREMENT PRIMARY KEY,
-    user_id INT NOT NULL,
-    provider VARCHAR(255) NOT NULL,
-    subject VARCHAR(255) NOT NULL,
-    UNIQUE (provider, subject)
-  )
-`);
-
 // Creating monitors table, holding the filters for each monitor and the respective owner
 // If considering a scalable database design, this table would be split into two entities, the primary monitors table and a secondary table holding the filters
 // However, since this is a small project, I decided to keep it simple and have all the data in one table to minimize SQL queries

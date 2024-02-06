@@ -1,10 +1,10 @@
 const express = require('express');
-// const ensureLogIn = require('connect-ensure-login').ensureLoggedIn;
+const router = express.Router();
 const db = require('../db');
 // Import addScraper function from scrape.js
 const { addScraper, stopScraper } = require('../scrape');
 
-const router = express.Router();
+
 
 // GET: Fetch all monitors for a given chatid
 router.get('/monitors', function (req, res, next) {

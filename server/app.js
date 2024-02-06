@@ -1,23 +1,18 @@
-// imports environment variables, which are stored in .env file.
+// loads environment variables from .env file into process.env
 require('dotenv').config();
 
 const createError = require('http-errors');
 const express = require('express');
-// const path = require('path');
 const cookieParser = require('cookie-parser');
 const session = require('express-session');
-// const csrf = require('csurf');
 const passport = require('passport');
 const logger = require('morgan');
 const cors = require('cors');
 
 // Import MySQL session store
 const MySQLStore = require('express-mysql-session')(session);
-const db = require('./db'); // Import the MySQL pool
 const indexRouter = require('./routes/index');
 const authRouter = require('./routes/auth');
-
-
 
 // Configuration used for sessionStore
 const options = {
@@ -54,7 +49,6 @@ app.use(
   })
 );
 
-// app.use(csrf());
 app.use(passport.authenticate('session'));
 
 app.use(function(req, res, next) {
@@ -65,18 +59,8 @@ app.use(function(req, res, next) {
   next();
 });
 
-// This function isn't necessary as CSRF protection is handled on client side using Angular
-// Passes the CSRF token to routes
-// app.use(function(req, res, next) {
-//   res.locals.csrfToken = req.csrfToken();
-//   next();
-// });
-
-
 app.use('/', indexRouter);
 app.use('/', authRouter);
-
-
 
 // error handler
 app.use(function(err, req, res, next) {
@@ -84,15 +68,14 @@ app.use(function(err, req, res, next) {
   // Remember, it is important not to send detailed error information
   // in a production environment as it can expose sensitive information about your application.
   // TODO: When in production change this to false
-  const isDevelopment = true;
   res.locals.message = err.message;
-  res.locals.error = isDevelopment ? err : {};
+  res.locals.error = process.env.DEVBUILD ? err : {};
 
   // respond with error status and message
   res.status(err.status || 500);
   res.json({
     message: err.message,
-    error: isDevelopment ? err : {},
+    error: process.env.DEVBUILD ? err : {},
   });
 });
 
