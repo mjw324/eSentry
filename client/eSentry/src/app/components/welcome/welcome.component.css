@@ -1,0 +1,126 @@
+/* Base styles for the info-sections */
+.info-section {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    align-items: center;
+    text-align: center;
+    gap: 20px;
+    width: 100vw;
+    height: 100vh;
+    overflow: auto;
+    padding: 20px;
+  }
+  
+  /* Adjust text alignment for left sections */
+  #quick-info-left, #monitor-left, #informed-left {
+    text-align: left;
+  }
+  
+  /* Ensure images and buttons are not too wide */
+  #monitor-image, #informed-image, .quick-info-signin {
+    max-width: 100%;
+    max-height: 80vh; /* Limit the height of the images to prevent overflow */
+    height: auto;
+    /* Center the images */
+    display: block;
+    margin-left: auto;
+    margin-right: auto;
+  }
+
+  #quick-info-icon {
+    max-width: 30vw; /* Otherwise the icon is too big */
+    height: auto;
+  }
+  
+  /* Responsive adjustments */
+  @media (max-width: 768px) {
+    .info-section {
+      grid-template-columns: 1fr; /* Stack the columns on smaller screens */
+      height: auto; /* Allow the section to grow taller if needed */
+    }
+    #quick-info-icon {
+        max-width: 50vw;
+    }
+  }
+  
+
+ /* Color scheme and font sizing for the welcome page */
+
+ #monitor-title, #monitor-description, #informed-title, #informed-description {
+    color: #FFFFEB; /* Cream */
+  }
+  .highlight {
+    color: #F4743B; /* Orange */
+  }
+  #quick-info-title, #quick-info-description {
+    color: #3C6E71; /* Teal */
+  }
+  #quick-info-title {
+    font-size: clamp(max(5vw, 3rem), 7vw, min(9vw, 8rem));
+  }
+  #monitor-title, #informed-title {
+    font-weight: 900;
+    font-size: max(3rem, 2vw);
+  }
+  #quick-info-description, #monitor-description, #informed-description{
+    font-size: min(2rem, 8vw);
+    font-weight: 500;
+  }
+  #quick-info-icon-text {
+    color: #3C6E71; /* Teal */
+    font-weight: 900;
+    font-size: clamp(max(5vw, 3rem), 7vw, min(9vw, 8rem));
+    margin-top: 0;
+  }
+  #quick-info {
+    background-color: #FFFFEB; /* Cream */
+  }
+  #setting-up-monitor {
+    background-color: #F4743B; /* Orange */
+  }
+  #stay-informed {
+    background-color: #3C6E71; /* Teal */
+  }
+  
+  #informed-description {
+    padding: 1em;
+    border-radius: 1em;
+    background-color: #f4743b;
+    box-shadow: -1vw 1vw 0vw #ffffebba;
+  }
+
+  #monitor-description {
+    padding: 1em;
+    border-radius: 1em;
+    background-color: #3c6e71;
+    box-shadow: 1vw 1vw 0vw #ffffebba;
+  }
+
+  /* Center align elements in the left and right divs of the monitor and informed sections */
+#monitor-left, #monitor-right, #informed-left, #informed-right {
+    padding: 1em;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+  }
+  
+  /* Center align the text within these divs */
+  #monitor-title, #monitor-description, #informed-title, #informed-description {
+    text-align: center;
+  }
+
+  #monitor-description {
+    margin-right: 2em;
+  }
+  #informed-description {
+    margin-left: 2em;
+  }
+  
+  /* Ensure images are centered and do not stretch */
+  #monitor-image, #informed-image {
+    width: auto; /* Maintain original width */
+    max-width: 100%; /* Ensure it does not exceed the container width */
+    height: auto; /* Maintain aspect ratio */
+  }
+  
