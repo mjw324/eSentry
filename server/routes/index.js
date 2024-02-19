@@ -49,36 +49,48 @@ router.post('/monitors', function (req, res, next) {
     // If 'keywords' or 'chatid' is not provided, respond with an error status and message
     return res.status(400).json({ message: 'Keywords, chatid, and userid are required' });
   }
-  db.pool.query(
-    'INSERT INTO monitors (keywords, chatid, userid, recentlink, min_price, max_price, condition_new, condition_open_box, condition_used, exclude_keywords) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)',
-    [
-      monitorObj.keywords,
-      monitorObj.chatid,
-      monitorObj.userid,
-      null, // recentlink is always null/non-existent when scraper is first initialized
-      monitorObj.min_price || null,
-      monitorObj.max_price || null,
-      monitorObj.condition_new || null,
-      monitorObj.condition_open_box || null,
-      monitorObj.condition_used || null,
-      monitorObj.exclude_keywords || null
-    ],
+  // First retrieve number of monitors for the userid
+  db.pool.query('SELECT COUNT(*) as count FROM monitors WHERE userid = ?', 
+    [monitorObj.userid], 
     function (error, results, fields) {
       if (error) {
         console.log(error);
         return res.status(500).json({ message: 'Internal server error' }); // Notify the client that an internal server error occurred
       }
-      // If no error, proceed to add the scraper and respond with the ID of the newly created monitor
-      monitorObj.id = results.insertId;
-      // Install addScraper here with specified interval
-      addScraper(monitorObj, process.env.SCRAPE_REFRESH_RATE);
-
-      // Respond with the ID of the newly created monitor
-      res.json({ id: results.insertId });
-    }
-  );
-
-
+      // If the user has 2 or more monitors, respond with an error status and message
+      if (results[0].count >= 2) {
+        return res.status(400).json({ message: 'Maximum number of monitors reached' });
+      } else {
+        db.pool.query(
+          'INSERT INTO monitors (keywords, chatid, userid, recentlink, min_price, max_price, condition_new, condition_open_box, condition_used, exclude_keywords) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)',
+          [
+            monitorObj.keywords,
+            monitorObj.chatid,
+            monitorObj.userid,
+            null, // recentlink is always null/non-existent when scraper is first initialized
+            monitorObj.min_price || null,
+            monitorObj.max_price || null,
+            monitorObj.condition_new || null,
+            monitorObj.condition_open_box || null,
+            monitorObj.condition_used || null,
+            monitorObj.exclude_keywords || null
+          ],
+          function (error, results, fields) {
+            if (error) {
+              console.log(error);
+              return res.status(500).json({ message: 'Internal server error' }); // Notify the client that an internal server error occurred
+            }
+            // If no error, proceed to add the scraper and respond with the ID of the newly created monitor
+            monitorObj.id = results.insertId;
+            // Install addScraper here with specified interval
+            addScraper(monitorObj, process.env.SCRAPE_REFRESH_RATE);
+    
+            // Respond with the ID of the newly created monitor
+            res.json({ id: results.insertId });
+          }
+        );
+      }
+    });
 });
 
 // DELETE: Delete a monitor by its ID
