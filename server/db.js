@@ -34,13 +34,14 @@ pool.query(`
     condition_new BOOLEAN,
     condition_open_box BOOLEAN,
     condition_used BOOLEAN,
-    exclude_keywords VARCHAR(255)
+    exclude_keywords VARCHAR(255),
+    active BOOLEAN DEFAULT 0
   )
 `, (err, results, fields) => {
   if (err) throw err;
 
   // On server startup, initialize all scrapers saved in MySQL database
-  pool.query('SELECT * FROM monitors', function(error, results, fields) {
+  pool.query('SELECT * FROM monitors WHERE active = 1', function(error, results, fields) {
     if (error) { 
       console.error("Error fetching monitors on startup:", error);
       return;

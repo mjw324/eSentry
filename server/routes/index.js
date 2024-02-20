@@ -1,6 +1,9 @@
 const express = require('express');
 const router = express.Router();
 const db = require('../db');
+// Import BadWords module. This is to reject any attempts to add a monitor with a bad word in the keywords
+const BadWords = require('bad-words');
+const filter = new BadWords();
 // Import addScraper function from scrape.js
 const { addScraper, stopScraper } = require('../scrape');
 
@@ -19,7 +22,7 @@ router.get('/monitors', function (req, res, next) {
   const query = 'SELECT * FROM monitors WHERE userid = ?';
 
   db.pool.query(query, [userid], function (error, results, fields) {
-    if (error) { return next(error); }
+    if (error) { console.log(error); return next(error); }
 
     // Respond with the list of monitors for the given chatid
     res.json(results);
@@ -49,8 +52,11 @@ router.post('/monitors', function (req, res, next) {
     // If 'keywords' or 'chatid' is not provided, respond with an error status and message
     return res.status(400).json({ message: 'Keywords, chatid, and userid are required' });
   }
-  // First retrieve number of monitors for the userid
-  db.pool.query('SELECT COUNT(*) as count FROM monitors WHERE userid = ?', 
+  if (filter.isProfane(monitorObj.keywords)) {
+    return res.status(400).json({ message: 'Keywords contain a inappropriate words' });
+  }
+  // First count how many active monitors user has before adding a new one
+  db.pool.query('SELECT COUNT(*) as count FROM monitors WHERE userid = ? and active = 1', 
     [monitorObj.userid], 
     function (error, results, fields) {
       if (error) {
@@ -82,9 +88,6 @@ router.post('/monitors', function (req, res, next) {
             }
             // If no error, proceed to add the scraper and respond with the ID of the newly created monitor
             monitorObj.id = results.insertId;
-            // Install addScraper here with specified interval
-            addScraper(monitorObj, process.env.SCRAPE_REFRESH_RATE);
-    
             // Respond with the ID of the newly created monitor
             res.json({ id: results.insertId });
           }
@@ -93,8 +96,79 @@ router.post('/monitors', function (req, res, next) {
     });
 });
 
+// PATCH: Route to update the status of a monitor
+router.patch('/monitors/:id/status', (req, res) => {
+  const { id } = req.params;
+  const { active, userid } = req.body; // Expecting {"active": true/false, "userid": "123456789"}
+
+  // Validate that userid is provided
+  if (!userid) {
+    return res.status(400).json({ message: 'Userid is required' });
+  }
+
+  // First, check the current status of the monitor to avoid unnecessary updates
+  db.pool.query('SELECT active FROM monitors WHERE id = ? AND userid = ?', [id, userid], (error, results) => {
+    if (error) {
+      return res.status(500).json({ message: 'Error querying the database', error: error.message });
+    }
+
+    if (results.length === 0) {
+      return res.status(404).json({ message: `Monitor with id ${id} not found for the provided userid.` });
+    }
+
+    // Should only be one monitor with the provided id and userid
+    const monitor = results[0];
+
+    if (monitor.active && !active) {
+      // Monitor is active and client wants to disable it
+      stopScraper(parseInt(id));
+      // Update the monitor status in the database
+      performUpdate(id, false, res);
+    } else if (!monitor.active && active) {
+      // Monitor is inactive and client wants to enable it
+      // Check if enabling is allowed based on the number of active monitors
+      checkAndEnableMonitor(id, userid, res);
+    } else {
+      // No change needed, monitor is already in the requested state
+      res.json({ message: `Monitor ${id} is already ${monitor.active ? 'active' : 'inactive'}. No action taken.` });
+    }
+  });
+});
+
+function checkAndEnableMonitor(id, userid, res) {
+  db.pool.query('SELECT COUNT(*) as count FROM monitors WHERE userid = ? AND active = 1', [userid], (error, results) => {
+    if (error) {
+      return res.status(500).json({ message: 'Error querying the database', error: error.message });
+    }
+
+    if (results[0].count >= 2) {
+      // User already has 2 active monitors, do not enable another
+      return res.status(400).json({ message: 'Maximum number of active monitors reached' });
+    } else {
+      // User has less than 2 active monitors, proceed to enable this one on database and start the scraper
+      performUpdate(id, true, res);
+      // Pull paramaters from the database to start the scraper
+      db.pool.query('SELECT * FROM monitors WHERE active = 1', function(error, monitorObj) {
+        if (error) {
+          return res.status(500).json({ message: 'Error querying the database', error: error.message });
+        }
+          // Installing scraper from the query results of monitors table
+          addScraper(monitorObj[0], process.env.SCRAPE_REFRESH_RATE);
+        });
+    }
+  });
+}
+
+function performUpdate(id, active, res) {
+  db.pool.query('UPDATE monitors SET active = ? WHERE id = ?', [active, id], (error, results) => {
+    if (error) {
+      return res.status(500).json({ message: 'Error updating monitor status', error: error.message });
+    }
+    res.json({ message: `Monitor ${id} has been ${active ? 'enabled' : 'disabled'}.` });
+  });
+}
+
 // DELETE: Delete a monitor by its ID
-// TODO: Delete the scraper as well, check if userid matches monitor's ownerid
 router.delete('/monitors/:id', function (req, res, next) {
   // Extract 'id' from the request parameters
   const id = req.params.id;

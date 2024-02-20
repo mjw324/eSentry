@@ -1,34 +1,12 @@
 // loads environment variables from .env file into process.env
 require('dotenv').config();
-
-const createError = require('http-errors');
 const express = require('express');
+const app = express();
+const createError = require('http-errors');
 const cookieParser = require('cookie-parser');
-const session = require('express-session');
-const passport = require('passport');
 const logger = require('morgan');
 const cors = require('cors');
-
-// Import MySQL session store
-const MySQLStore = require('express-mysql-session')(session);
 const indexRouter = require('./routes/index');
-const authRouter = require('./routes/auth');
-
-// Configuration used for sessionStore
-const options = {
-  host: process.env.DB_HOST,
-  user: process.env.DB_USER,
-  password: process.env.DB_PASSWORD,
-  database: process.env.DB_NAME,
-  waitForConnections: true,
-  connectionLimit: 10,
-  queueLimit: 0
-};
-
-// Stores user sessions in the MySQL database
-const sessionStore = new MySQLStore(options);
-
-const app = express();
 
 
 // Dev logger, can delete when in production
@@ -38,29 +16,7 @@ app.use(express.urlencoded({ extended: false }));
 app.use(cors());
 app.use(cookieParser());
 
-
-// Configure session middleware
-app.use(
-  session({
-    secret: 'cardboard cat',
-    resave: false,
-    saveUninitialized: false,
-    store: sessionStore // uses MySQL Session Store
-  })
-);
-
-app.use(passport.authenticate('session'));
-
-app.use(function(req, res, next) {
-  var msgs = req.session.messages || [];
-  res.locals.messages = msgs;
-  res.locals.hasMessages = !! msgs.length;
-  req.session.messages = [];
-  next();
-});
-
 app.use('/', indexRouter);
-app.use('/', authRouter);
 
 // error handler
 app.use(function(err, req, res, next) {
@@ -69,8 +25,8 @@ app.use(function(err, req, res, next) {
   // in a production environment as it can expose sensitive information about your application.
   // TODO: When in production change this to false
   res.locals.message = err.message;
-  res.locals.error = process.env.DEVBUILD ? err : {};
-
+  res.locals.error = process.env.DEVBUILD = 'true' ? err : {};
+  console.log(err.message, err.stack, err.status)
   // respond with error status and message
   res.status(err.status || 500);
   res.json({
