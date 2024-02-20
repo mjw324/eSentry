@@ -30,6 +30,7 @@ export class NewMonitorMenuComponent {
       userid: this.userService.getCurrentUserID(),
       keywords: this.keywords.join(' '),
       chatid: this.telegramID,
+      active: false
     };
 
     if (this.minPrice > 0) {

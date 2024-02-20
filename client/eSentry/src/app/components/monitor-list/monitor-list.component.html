@@ -2,6 +2,7 @@
 <p-table [value]="(monitors$ | async) ?? []">
   <ng-template pTemplate="header">
     <tr>
+      <th>Status</th>
       <th>Keywords</th>
       <th>TelegramID</th>
       <th>Minimum Price</th>
@@ -14,6 +15,12 @@
   </ng-template>
   <ng-template pTemplate="body" let-monitor>
     <tr>
+      <td>
+        <p-inputSwitch
+          [ngModel]="monitor.active === 1"
+          (ngModelChange)="onSwitchChange(monitor.id, $event)"
+        ></p-inputSwitch>
+      </td>
       <td>{{ monitor.keywords }}</td>
       <td>{{ monitor.chatid }}</td>
       <td>
@@ -34,25 +41,46 @@
           </ng-template>
 
           <ng-template [ngIf]="monitor.condition_used">
-            <ng-container *ngIf="monitor.condition_new || monitor.condition_open_box">, </ng-container>
+            <ng-container
+              *ngIf="monitor.condition_new || monitor.condition_open_box"
+              >,
+            </ng-container>
             <span>Used</span>
           </ng-template>
 
-          <ng-template [ngIf]="!monitor.condition_new && !monitor.condition_open_box && !monitor.condition_used">
+          <ng-template
+            [ngIf]="
+              !monitor.condition_new &&
+              !monitor.condition_open_box &&
+              !monitor.condition_used
+            "
+          >
             <span>None</span>
           </ng-template>
         </ng-container>
       </td>
 
       <td>
-        <span *ngIf="monitor.exclude_keywords">{{ monitor.exclude_keywords }}</span>
+        <span *ngIf="monitor.exclude_keywords">{{
+          monitor.exclude_keywords
+        }}</span>
       </td>
       <td>
-        <a *ngIf="monitor.recentlink" [href]="monitor.recentlink" target="_blank">eBay Link</a>
+        <a
+          *ngIf="monitor.recentlink"
+          [href]="monitor.recentlink"
+          target="_blank"
+          >eBay Link</a
+        >
         <span *ngIf="!monitor.recentlink">None</span>
       </td>
       <td>
-        <p-button label="Delete" styleClass="p-button-rounded p-button-danger" icon="pi pi-trash" (click)="deleteMonitor(monitor.id)"></p-button>
+        <p-button
+          label="Delete"
+          styleClass="p-button-rounded p-button-danger"
+          icon="pi pi-trash"
+          (click)="deleteMonitor(monitor.id)"
+        ></p-button>
       </td>
     </tr>
   </ng-template>

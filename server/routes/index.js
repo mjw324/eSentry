@@ -99,8 +99,8 @@ router.post('/monitors', function (req, res, next) {
 // PATCH: Route to update the status of a monitor
 router.patch('/monitors/:id/status', (req, res) => {
   const { id } = req.params;
-  const { active, userid } = req.body; // Expecting {"active": true/false, "userid": "123456789"}
-
+  const { active } = req.body; // Expecting {"active": true/false}
+  const userid = req.headers.userid;
   // Validate that userid is provided
   if (!userid) {
     return res.status(400).json({ message: 'Userid is required' });

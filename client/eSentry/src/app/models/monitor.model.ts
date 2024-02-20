@@ -2,6 +2,7 @@ export type Monitor = {
     id: number;
     keywords: string;
     chatid: string;
+    active: number;
     recentlink?: string;
     min_price?: number;
     max_price?: number;

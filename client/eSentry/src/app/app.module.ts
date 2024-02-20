@@ -15,6 +15,7 @@ import { MessageService } from 'primeng/api';
 import { SelectButtonModule } from 'primeng/selectbutton';
 import { SliderModule } from 'primeng/slider';
 import { ChipsModule } from 'primeng/chips';
+import { InputSwitchModule } from 'primeng/inputswitch';
 
 import {
   GoogleLoginProvider,
@@ -57,6 +58,7 @@ import { environment } from 'src/environments/environment';
     InputTextareaModule,
     InputTextModule,
     ToastModule,
+    InputSwitchModule
   ],
   providers: [
     {
