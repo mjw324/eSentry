@@ -3,6 +3,8 @@ import { HttpClient } from '@angular/common/http';
 import { DEFAULT_USER, User } from '../models/user.model';
 import { SocialUser } from '@abacritt/angularx-social-login';
 import { environment } from 'src/environments/environment';
+import { Observable } from 'rxjs';
+import { tap } from 'rxjs/operators';
 
 
 @Injectable({
@@ -31,7 +33,27 @@ export class UserService {
     return this.currentUser.id;
   }
 
-  isLoggedIn():boolean{
-    return this.currentUser != DEFAULT_USER
+  isLoggedIn(): boolean {
+    return this.currentUser && this.currentUser.id !== DEFAULT_USER.id;
+  }
+  
+  
+  register(username: string, password: string): Observable<any> {
+    return this.http.post(`${environment.url}/register`, { username, password });
+  }
+  signIn(username: string, password: string): Observable<any> {
+    return this.http.post<any>(`${environment.url}/login`, { username, password }).pipe(
+      tap(response => {
+        // Set currentUser with response data
+        const user: User = {
+          id: response.userid,
+          name: '',
+          email: '',
+          photoUrl: 'https://icon-library.com/images/default-user-icon/default-user-icon-13.jpg',
+          username: username
+        };
+        this.currentUser = user;
+      })
+    );
   }
 }

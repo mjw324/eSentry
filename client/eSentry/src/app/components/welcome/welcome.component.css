@@ -124,3 +124,20 @@
     height: auto; /* Maintain aspect ratio */
   }
   
+/* Style for Sign In and Register buttons */
+.auth-button {
+  padding: 10px 20px;
+  margin-top: 20px;
+  margin-right: 10px; /* Space between buttons */
+  border: none;
+  border-radius: 5px;
+  background-color: #F4743B; /* Orange to match your theme */
+  color: #FFFFEB; /* Cream */
+  font-weight: bold;
+  cursor: pointer;
+  transition: background-color 0.3s ease;
+}
+
+.auth-button:hover {
+  background-color: #3C6E71; /* Teal for hover effect */
+}

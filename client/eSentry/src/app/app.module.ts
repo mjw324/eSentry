@@ -31,6 +31,8 @@ import { WelcomeComponent } from './components/welcome/welcome.component';
 import { HomeComponent } from './components/home/home.component';
 import { HttpClientModule } from '@angular/common/http';
 import { environment } from 'src/environments/environment';
+import { SigninComponent } from './signin/signin.component';
+import { RegisterComponent } from './register/register.component';
 
 @NgModule({
   declarations: [
@@ -39,6 +41,8 @@ import { environment } from 'src/environments/environment';
     HomeComponent,
     MonitorListComponent,
     NewMonitorMenuComponent,
+    SigninComponent,
+    RegisterComponent,
   ],
   imports: [
     BrowserModule,

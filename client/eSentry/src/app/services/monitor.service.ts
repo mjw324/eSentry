@@ -38,7 +38,7 @@ export class MonitorService {
         catchError(error => {
           // Extracting the custom error message from the server's response
           const errorMessage = 'No inappropriate keywords allowed';
-          this.messageService.add({ severity: "error", summary: "Error", detail: 'No inappropriate keywords allowed!' });
+          this.messageService.add({ severity: "error", summary: "Error", detail: error.message });
   
           // Use the custom error message for the thrown error as well
           return throwError(() => new Error(errorMessage));

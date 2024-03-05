@@ -1,0 +1,42 @@
+.signin-container {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  height: 100vh;
+  background-color: #FFFFEB; /* Cream background */
+}
+
+.signin-form {
+  display: flex;
+  flex-direction: column;
+  gap: 20px; /* Space between form elements */
+  max-width: 400px; /* Maximum form width */
+  width: 100%; /* Responsive width */
+  padding: 20px;
+  border-radius: 10px;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1); /* Soft shadow for depth */
+  background-color: #FFF; /* White background for the form */
+}
+
+.form-input {
+  padding: 10px;
+  border-radius: 5px;
+  border: 1px solid #ccc; /* Light border */
+  font-size: 16px; /* Legible font size */
+}
+
+.auth-button {
+  padding: 10px 20px;
+  margin-top: 20px;
+  border: none;
+  border-radius: 5px;
+  background-color: #F4743B; /* Orange */
+  color: #FFFFEB; /* Cream */
+  font-weight: bold;
+  cursor: pointer;
+  transition: background-color 0.3s ease;
+}
+
+.auth-button:hover {
+  background-color: #3C6E71; /* Teal for hover effect */
+}
