@@ -4,13 +4,30 @@ const db = require('../db');
 // Import BadWords module. This is to reject any attempts to add a monitor with a bad word in the keywords
 const BadWords = require('bad-words');
 const filter = new BadWords();
+// Import rateLimit module. This is to limit the number of requests to the server
+const rateLimit = require('express-rate-limit');
 // Import addScraper function from scrape.js
 const { addScraper, stopScraper } = require('../scrape');
 
+// This limiter is meant for the requests that take some execution time on the server
+// This is meant to prevent the server from undefined behavior
+const update_limiter = rateLimit({
+  windowMs: 15 * 60 * 1000, // 15 minutes
+  max: 1, // Limit each IP to 1 update requests per time window
+  standardHeaders: true, // Return rate limit info in the `RateLimit-*` headers
+  legacyHeaders: false, // Disable the `X-RateLimit-*` headers
+});
+
+const get_post_limiter = rateLimit({
+  windowMs: 5 * 1000, // 5 seconds
+  max: 1, // Limit each IP to 1 get or post request per time window
+  standardHeaders: true, // Return rate limit info in the `RateLimit-*` headers
+  legacyHeaders: false, // Disable the `X-RateLimit-*` headers
+});
 
 
 // GET: Fetch all monitors for a given chatid
-router.get('/monitors', function (req, res, next) {
+router.get('/monitors', get_post_limiter, function (req, res, next) {
   // Extract 'userid' from the request query parameters
   const userid = req.headers.userid;
   // Validate chatid if necessary
@@ -32,7 +49,7 @@ router.get('/monitors', function (req, res, next) {
 
 
 // PATCH: Route to update the status of a monitor
-router.patch('/monitors/:id/status', (req, res) => {
+router.patch('/monitors/:id/status', update_limiter, (req, res) => {
   const { id } = req.params;
   const { active } = req.body; // Expecting {"active": true/false}
   const userid = req.headers.userid;
@@ -104,7 +121,7 @@ function performUpdate(id, active, res) {
 }
 
 // DELETE: Delete a monitor by its ID
-router.delete('/monitors/:id', function (req, res, next) {
+router.delete('/monitors/:id', get_post_limiter, function (req, res, next) {
   // Extract 'id' from the request parameters
   const id = req.params.id;
   const userid = req.headers.userid;
@@ -123,7 +140,7 @@ router.delete('/monitors/:id', function (req, res, next) {
 });
 
 // PATCH: Update an existing monitor and handle starting/stopping if needed
-router.patch('/monitors/:id', (req, res) => {
+router.patch('/monitors/:id', update_limiter, (req, res) => {
   const monitorId = req.params.id;
   const updateObj = req.body; // Contains updated monitor details
   const userid = req.headers.userid;
