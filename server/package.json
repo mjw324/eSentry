@@ -11,9 +11,9 @@
   "dependencies": {
     "axios": "^1.4.0",
     "bad-words": "^3.0.4",
+    "bcrypt": "^5.1.1",
     "cheerio": "^1.0.0-rc.12",
     "connect-ensure-login": "^0.1.1",
-    "cookie-parser": "^1.4.6",
     "cors": "^2.8.5",
     "csurf": "^1.11.0",
     "debug": "^4.3.4",
@@ -32,6 +32,6 @@
     "passport": "^0.6.0",
     "passport-google-oauth20": "^2.0.0",
     "passport-google-oidc": "^0.1.0",
-    "path": "^0.12.7"
+    "uuid": "^9.0.1"
   }
 }

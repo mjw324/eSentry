@@ -1,4 +1,4 @@
-import { GoogleLoginProvider, SocialAuthService, SocialLoginModule } from '@abacritt/angularx-social-login';
+import { SocialAuthService, SocialLoginModule } from '@abacritt/angularx-social-login';
 import { Component, NgModule } from '@angular/core';
 import { Router } from '@angular/router';
 import { OnInit } from '@angular/core';
@@ -14,16 +14,25 @@ import { UserService } from 'src/app/services/user.service';
 })
 export class WelcomeComponent implements OnInit {
 
-  constructor(public router: Router,
-    public socialAuthService: SocialAuthService,
-    public userService:UserService) { }
+  constructor(
+    private socialAuthService: SocialAuthService,
+    private userService: UserService,
+    private router: Router
+  ) { }
 
   ngOnInit() {
     this.socialAuthService.authState.subscribe((user) => {
-      if (user != null) { //This might need to be changed if the user wants to hit "back" and be brought to logout
-        this.userService.setCurrentUser(user);
-        this.router.navigate(['/home']);
+      if (user != null) {
+        this.userService.setCurrentUser(user).subscribe({
+          next: (response) => {
+            console.log('User is registered/logged in', response);
+            this.router.navigate(['/home']);
+          },
+          error: (error) => {
+            console.error('Error registering/logging in user', error);
+          }
+        });
       }
-    })
+    });
   }
 }

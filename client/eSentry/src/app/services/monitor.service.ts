@@ -32,15 +32,20 @@ export class MonitorService {
   }
 
   addMonitor(request: MonitorRequest, userid: string): Observable<Monitor> {
-    return this.http.post<Monitor>(environment.url + '/monitors', request)
+    return this.http.post<Monitor>(`${environment.url}/monitors`, request, { headers: new HttpHeaders({ userid }) })
       .pipe(
         tap(() => this.fetchMonitors(userid)),
         catchError(error => {
-          this.messageService.add({severity: "error", summary: "Error", detail: error.message});
-          return throwError(() => new Error(error.message));
+          // Extracting the custom error message from the server's response
+          const errorMessage = 'No inappropriate keywords allowed';
+          this.messageService.add({ severity: "error", summary: "Error", detail: 'No inappropriate keywords allowed!' });
+  
+          // Use the custom error message for the thrown error as well
+          return throwError(() => new Error(errorMessage));
         })
       );
   }
+  
 
   deleteMonitor(monitorid: number, userid: string): Observable<any> {
     return this.http.delete(environment.url + '/monitors/' + monitorid, { headers: { userid }})
