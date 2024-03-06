@@ -23,6 +23,7 @@ export class UserService {
       id: socialUser.id
     };
     this.currentUser = user;
+    localStorage.setItem('isLoggedIn', 'true');
     // Send the user data to the backend
     return this.http.post(`${environment.url}/register-or-login`, user);
   }
@@ -34,7 +35,7 @@ export class UserService {
   }
 
   isLoggedIn(): boolean {
-    return this.currentUser && this.currentUser.id !== DEFAULT_USER.id;
+    return this.currentUser !== DEFAULT_USER;
   }
   
   
@@ -53,6 +54,7 @@ export class UserService {
           username: username
         };
         this.currentUser = user;
+        localStorage.setItem('isLoggedIn', 'true');
       })
     );
   }
