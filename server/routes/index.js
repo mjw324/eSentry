@@ -16,7 +16,7 @@ const { addScraper, stopScraper } = require('../scrape');
 // This limiter is meant for the requests that take some execution time on the server
 // This is meant to prevent the server from undefined behavior
 const update_limiter = rateLimit({
-  windowMs: 15 * 60 * 1000, // 15 minutes
+  windowMs: 5 * 1000, // 5 seconds
   max: 1, // Limit each IP to 1 update requests per time window
   standardHeaders: true, // Return rate limit info in the `RateLimit-*` headers
   legacyHeaders: false, // Disable the `X-RateLimit-*` headers
