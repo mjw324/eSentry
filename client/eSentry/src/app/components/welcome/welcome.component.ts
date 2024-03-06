@@ -27,9 +27,6 @@ export class WelcomeComponent implements OnInit {
           next: (response) => {
             console.log('User is registered/logged in', response);
             this.router.navigate(['/home']);
-          },
-          error: (error) => {
-            console.error('Error registering/logging in user', error);
           }
         });
       }

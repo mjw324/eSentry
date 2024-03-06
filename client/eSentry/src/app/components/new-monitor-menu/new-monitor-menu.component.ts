@@ -59,9 +59,6 @@ export class NewMonitorMenuComponent {
             console.log('Monitor added:', monitor);
             this.resetForm();
             this.dialogService.closeNewMonitorDialog();
-        },
-        error: (error) => {
-            console.error('Error adding monitor:', error);
         }
     });
   }

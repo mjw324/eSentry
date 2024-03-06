@@ -1,4 +1,4 @@
-import { NgModule } from '@angular/core';
+import { NgModule, ErrorHandler } from '@angular/core';
 import { BrowserModule } from '@angular/platform-browser';
 import { FormsModule } from '@angular/forms';
 import { BrowserAnimationsModule } from '@angular/platform-browser/animations';
@@ -33,6 +33,8 @@ import { HttpClientModule } from '@angular/common/http';
 import { environment } from 'src/environments/environment';
 import { SigninComponent } from './signin/signin.component';
 import { RegisterComponent } from './register/register.component';
+import { ErrorHandlerService } from './services/error-handler.service';
+import { GlobalErrorHandler } from './services/global-error-handler';
 
 @NgModule({
   declarations: [
@@ -83,7 +85,12 @@ import { RegisterComponent } from './register/register.component';
       } as SocialAuthServiceConfig,
     },
     MessageService,
+    {
+      provide: ErrorHandler,
+      useClass: GlobalErrorHandler
+    },
+    ErrorHandlerService,
   ],
-  bootstrap: [AppComponent],
+  bootstrap: [AppComponent]
 })
 export class AppModule { }

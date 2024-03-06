@@ -58,7 +58,7 @@ router.post('/monitors', async (req, res) => {
 
   // Validate required fields
   if (!monitorObj.keywords || !monitorObj.chatid || !monitorObj.userid) {
-    return res.status(400).json({ message: 'Keywords, chatid, and userid are required' });
+    return res.status(400).json({ message: 'Keywords, Telegram ID, and User ID are all required' });
   }
 
   // Check for inappropriate words in keywords
@@ -70,13 +70,13 @@ router.post('/monitors', async (req, res) => {
     // Verify if the user exists in the users table
     const [users] = await db.pool.promise().query('SELECT id FROM users WHERE userid = ?', [monitorObj.userid]);
     if (users.length === 0) {
-      return res.status(404).json({ message: 'User not found' });
+      return res.status(404).json({ message: 'User not found in database' });
     }
 
     // Check the number of active monitors for the user
     const [countResult] = await db.pool.promise().query('SELECT COUNT(*) AS count FROM monitors WHERE userid = ? AND active = 1', [monitorObj.userid]);
     if (countResult[0].count >= 2) {
-      return res.status(400).json({ message: 'Maximum number of monitors reached' });
+      return res.status(400).json({ message: 'Maximum number of active monitors reached' });
     }
 
     // Insert the new monitor
@@ -85,7 +85,7 @@ router.post('/monitors', async (req, res) => {
       [
         monitorObj.keywords,
         monitorObj.chatid,
-        monitorObj.userid, // Ensure this userid is correctly linked to an existing user's id in the users table
+        monitorObj.userid,
         null, // recentlink is always null/non-existent when scraper is first initialized
         monitorObj.min_price || null,
         monitorObj.max_price || null,
@@ -119,7 +119,7 @@ router.patch('/monitors/:id/status', update_limiter, async (req, res) => {
     // First, validate the user exists and get the user's ID
     const [user] = await db.pool.promise().query('SELECT id FROM users WHERE userid = ?', [userID]);
     if (user.length === 0) {
-      return res.status(404).json({ message: 'User not found.' });
+      return res.status(404).json({ message: 'User not found in database' });
     }
 
     // Then, check the current status of the monitor to avoid unnecessary updates, ensuring it belongs to the user
@@ -341,7 +341,7 @@ router.post('/login', get_post_limiter, async (req, res) => {
 });
 
 // POST: Register or login a user via Google
-router.post('/register-or-login', async (req, res) => {
+router.post('/register-or-login', get_post_limiter, async (req, res) => {
   const { email, id, name, photoUrl } = req.body; // Extracting user details from the request body
 
   if (!email || !id || !name) {

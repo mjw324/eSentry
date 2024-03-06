@@ -2,7 +2,6 @@ import { Component, OnInit } from '@angular/core';
 import { MonitorService } from 'src/app/services/monitor.service';
 import { UserService } from 'src/app/services/user.service';
 
-
 @Component({
   selector: 'app-monitor-list',
   templateUrl: './monitor-list.component.html',
@@ -13,40 +12,35 @@ export class MonitorListComponent implements OnInit {
   monitors$ = this.monitorService.getMonitors();
   intervalID: any;
 
-  constructor(public monitorService: MonitorService, public userService: UserService) { }
+  constructor(
+    public monitorService: MonitorService, 
+    public userService: UserService
+  ) {}
 
   ngOnInit(): void {
     this.intervalID = setInterval(() => {
-      this.monitorService.fetchMonitors(this.userService.getCurrentUserID())
+      this.monitorService.fetchMonitors(this.userService.getCurrentUserID());
     }, 10000);
     this.monitorService.fetchMonitors(this.userService.getCurrentUserID());
   }
 
-  updateMonitorStatus(monitorId: number, status: number): void {
+  updateMonitorStatus(monitorId: number, status: boolean): void {
     const userId = this.userService.getCurrentUserID();
-    this.monitorService.updateMonitorStatus(monitorId, userId, status === 1).subscribe({
+    this.monitorService.updateMonitorStatus(monitorId, userId, status).subscribe({
       next: () => {
-        // Operation was successful, you might want to do something here or nothing at all
-      },
-      error: (error) => {
-        console.error('You can only have 2 monitors active at a time!');
-        // Refresh the list of monitors to revert the toggle state
-        this.monitorService.fetchMonitors(userId);
-        // Optionally, show an error message to the user
+        // Operation was successful, you might want to refresh or update UI accordingly
       }
     });
   }
   
   onSwitchChange(monitorId: number, isChecked: boolean): void {
-    const newStatus = isChecked ? 1 : 0; // Convert boolean back to number
-    this.updateMonitorStatus(monitorId, newStatus);
+    this.updateMonitorStatus(monitorId, isChecked);
   }
   
   deleteMonitor(monitorId: number) {
     const userId = this.userService.getCurrentUserID();
     this.monitorService.deleteMonitor(monitorId, userId).subscribe({
-      next: () => this.monitorService.fetchMonitors(userId),
-      error: (error) => console.error('Error deleting monitor:', error)
+      next: () => this.monitorService.fetchMonitors(userId)
     });
   }
 
