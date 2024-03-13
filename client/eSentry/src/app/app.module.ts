@@ -16,6 +16,7 @@ import { SelectButtonModule } from 'primeng/selectbutton';
 import { SliderModule } from 'primeng/slider';
 import { ChipsModule } from 'primeng/chips';
 import { InputSwitchModule } from 'primeng/inputswitch';
+import { SplitButtonModule } from 'primeng/splitbutton';
 
 import {
   GoogleLoginProvider,
@@ -35,6 +36,7 @@ import { SigninComponent } from './signin/signin.component';
 import { RegisterComponent } from './register/register.component';
 import { ErrorHandlerService } from './services/error-handler.service';
 import { GlobalErrorHandler } from './services/global-error-handler';
+import { EditMonitorMenuComponent } from './components/edit-monitor-menu/edit-monitor-menu/edit-monitor-menu.component';
 
 @NgModule({
   declarations: [
@@ -45,6 +47,7 @@ import { GlobalErrorHandler } from './services/global-error-handler';
     NewMonitorMenuComponent,
     SigninComponent,
     RegisterComponent,
+    EditMonitorMenuComponent,
   ],
   imports: [
     BrowserModule,
@@ -64,7 +67,8 @@ import { GlobalErrorHandler } from './services/global-error-handler';
     InputTextareaModule,
     InputTextModule,
     ToastModule,
-    InputSwitchModule
+    InputSwitchModule,
+    SplitButtonModule,
   ],
   providers: [
     {

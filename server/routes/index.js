@@ -55,9 +55,9 @@ router.get('/monitors', get_post_limiter, async (req, res, next) => {
 // POST: Add a new monitor
 router.post('/monitors', async (req, res) => {
   const monitorObj = req.body;
-
+  const userID = req.headers.userid;
   // Validate required fields
-  if (!monitorObj.keywords || !monitorObj.chatid || !monitorObj.userid) {
+  if (!monitorObj.keywords || !monitorObj.chatid || !userID) {
     return res.status(400).json({ message: 'Keywords, Telegram ID, and User ID are all required' });
   }
 
@@ -68,7 +68,7 @@ router.post('/monitors', async (req, res) => {
 
   try {
     // Verify if the user exists in the users table
-    const [users] = await db.pool.promise().query('SELECT id FROM users WHERE userid = ?', [monitorObj.userid]);
+    const [users] = await db.pool.promise().query('SELECT id FROM users WHERE userid = ?', [userID]);
     if (users.length === 0) {
       return res.status(404).json({ message: 'User not found in database' });
     }
@@ -85,7 +85,7 @@ router.post('/monitors', async (req, res) => {
       [
         monitorObj.keywords,
         monitorObj.chatid,
-        monitorObj.userid,
+        userID,
         null, // recentlink is always null/non-existent when scraper is first initialized
         monitorObj.min_price || null,
         monitorObj.max_price || null,
@@ -217,7 +217,7 @@ router.patch('/monitors/:id', update_limiter, async (req, res) => {
   const updateObj = req.body; // Contains updated monitor details
   const userID = req.headers.userid;
 
-  if (!userid) {
+  if (!userID) {
     return res.status(400).json({ message: 'User ID is required' });
   }
 
@@ -231,32 +231,28 @@ router.patch('/monitors/:id', update_limiter, async (req, res) => {
 
     const currentMonitor = results[0];
 
-    // Check if an update is necessary based on the active status
-    if (currentMonitor.active !== updateObj.active) {
-      // Construct the SQL query for updating the monitor
-      const query = 'UPDATE monitors SET keywords = ?, chatid = ?, userid = ?, min_price = ?, max_price = ?, condition_new = ?, condition_open_box = ?, condition_used = ?, exclude_keywords = ?, active = ? WHERE id = ?';
-      const queryParams = [
-        updateObj.keywords || currentMonitor.keywords,
-        updateObj.chatid || currentMonitor.chatid,
-        userID, // the user ID doesn't change
-        updateObj.min_price || currentMonitor.min_price,
-        updateObj.max_price || currentMonitor.max_price,
-        updateObj.condition_new || currentMonitor.condition_new,
-        updateObj.condition_open_box || currentMonitor.condition_open_box,
-        updateObj.condition_used || currentMonitor.condition_used,
-        updateObj.exclude_keywords || currentMonitor.exclude_keywords,
-        updateObj.active,
-        monitorId
-      ];
+    // Construct the SQL query for updating the monitor
+    const query = 'UPDATE monitors SET keywords = ?, chatid = ?, userid = ?, min_price = ?, max_price = ?, condition_new = ?, condition_open_box = ?, condition_used = ?, exclude_keywords = ?, active = ? WHERE id = ?';
+    const queryParams = [
+      updateObj.keywords !== undefined ? updateObj.keywords : currentMonitor.keywords,
+      updateObj.chatid !== undefined ? updateObj.chatid : currentMonitor.chatid,
+      userID, // the user ID doesn't change
+      updateObj.min_price !== undefined ? updateObj.min_price : currentMonitor.min_price,
+      updateObj.max_price !== undefined ? updateObj.max_price : currentMonitor.max_price,
+      'condition_new' in updateObj ? updateObj.condition_new : currentMonitor.condition_new,
+      'condition_open_box' in updateObj ? updateObj.condition_open_box : currentMonitor.condition_open_box,
+      'condition_used' in updateObj ? updateObj.condition_used : currentMonitor.condition_used,
+      updateObj.exclude_keywords !== undefined ? updateObj.exclude_keywords : currentMonitor.exclude_keywords,
+      currentMonitor.active,
+      monitorId
+    ];    
 
-      await db.pool.promise().query(query, queryParams);
+    await db.pool.promise().query(query, queryParams);
 
-      // Start or stop the scraper based on the 'active' status change
-      if (updateObj.active) {
-        addScraper(updateObj, process.env.SCRAPE_REFRESH_RATE);
-      } else {
-        stopScraper(parseInt(monitorId)); // Assuming this can be synchronous or you'd await a promise here too if it were async
-      }
+    // If monitor is currently active we need to stop the current scraper and start a new one with the updated parameters
+    if (currentMonitor.active) {
+      stopScraper(parseInt(monitorId));
+      addScraper(updateObj, process.env.SCRAPE_REFRESH_RATE);
     }
 
     res.json({ message: `Monitor ${monitorId} updated successfully.` });
@@ -359,7 +355,7 @@ router.post('/register-or-login', get_post_limiter, async (req, res) => {
     } else {
       // User doesn't exist, register them
       const insertQuery = 'INSERT INTO users (email, username, userid, photo_url, account_type) VALUES (?, ?, ?, ?, ?)';
-      await db.pool.promise().query(insertQuery, [email, name, id, photoUrl, 'google']);
+      await db.pool.promise().query(insertQuery, [email, email, id, photoUrl, 'google']);
 
       // Fetch the newly created user to return
       const [newUser] = await db.pool.promise().query(userExistsQuery, [email]);

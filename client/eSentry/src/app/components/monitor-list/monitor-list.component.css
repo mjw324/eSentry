@@ -1,4 +1,9 @@
 ::ng-deep .p-table {
-    border-radius: 2px;
+    border-radius: 10px;
     font-family: 'Mukta';
+}
+
+#wrapper {
+    margin-left: 2vw;
+    margin-right: 2vw;
 }

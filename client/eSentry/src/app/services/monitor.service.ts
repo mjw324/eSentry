@@ -10,8 +10,9 @@ import { environment } from 'src/environments/environment';
   providedIn: 'root',
 })
 export class MonitorService {
-  monitors: Subject<Monitor[]> = new Subject<Monitor[]>();
-
+  private monitors: Subject<Monitor[]> = new Subject<Monitor[]>();
+  // This is a private cache of monitors to avoid unnecessary API calls and make retrieval faster
+  private monitorsCache: Monitor[] = [];
   constructor(private http: HttpClient) {}
 
   getMonitors(): Observable<Monitor[]> {
@@ -20,7 +21,10 @@ export class MonitorService {
 
   fetchMonitors(userid: string): void {
     this.http.get<Monitor[]>(`${environment.url}/monitors`, { headers: { userid } })
-      .subscribe(monitors => this.monitors.next(monitors));
+      .subscribe(monitors => {
+        this.monitors.next(monitors);
+        this.monitorsCache = monitors;
+      });
   }
 
   addMonitor(request: MonitorRequest, userid: string): Observable<Monitor> {
@@ -28,15 +32,28 @@ export class MonitorService {
       .pipe(tap(() => this.fetchMonitors(userid)));
   }
 
-  deleteMonitor(monitorid: number, userid: string): Observable<any> {
-    return this.http.delete(`${environment.url}/monitors/${monitorid}`, { headers: { userid }});
+  deleteMonitor(monitorId: number, userid: string): Observable<any> {
+    return this.http.delete(`${environment.url}/monitors/${monitorId}`, { headers: new HttpHeaders({ userid })});
   }
 
   updateMonitorStatus(monitorId: number, userid: string, status: boolean): Observable<any> {
     const url = `${environment.url}/monitors/${monitorId}/status`;
     const body = { active: status };
-    const headers = { headers: new HttpHeaders({ userid }) };
+    const headers = new HttpHeaders({ userid });
 
-    return this.http.patch(url, body, headers);
+    return this.http.patch(url, body, { headers });
+  }
+
+  // Skips API call and directly retrieves monitor from cache
+  getMonitorByIdDirect(monitorId: number): Monitor | undefined {
+    return this.monitorsCache.find(monitor => monitor.id === monitorId);
+  }
+
+  updateMonitor(monitorId: number, request: MonitorRequest, userid: string): Observable<any> {
+    const url = `${environment.url}/monitors/${monitorId}`;
+    const headers = new HttpHeaders({ userid });
+    return this.http.patch(url, request, { headers }).pipe(
+      tap(() => this.fetchMonitors(userid)) // Refresh the monitors list after updating
+    );
   }
 }

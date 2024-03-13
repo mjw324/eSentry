@@ -10,4 +10,5 @@ export type Monitor = {
     condition_new?: boolean;
     condition_open_box?: boolean;
     condition_used?: boolean;
+    userid?: string;
 }

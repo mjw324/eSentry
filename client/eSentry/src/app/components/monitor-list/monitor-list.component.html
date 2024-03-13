@@ -1,3 +1,4 @@
+<div id="wrapper">
 <h1>Monitor List</h1>
 <p-table [value]="(monitors$ | async) ?? []">
   <ng-template pTemplate="header">
@@ -24,42 +25,12 @@
       <td>{{ monitor.keywords }}</td>
       <td>{{ monitor.chatid }}</td>
       <td>
-        <span *ngIf="monitor.min_price">{{ monitor.min_price }}</span>
+        <span *ngIf="monitor.min_price">${{ monitor.min_price }}</span>
       </td>
       <td>
-        <span *ngIf="monitor.max_price">{{ monitor.max_price }}</span>
+        <span *ngIf="monitor.max_price">${{ monitor.max_price }}</span>
       </td>
-      <td>
-        <ng-container>
-          <ng-template [ngIf]="monitor.condition_new">
-            <span>New</span>
-          </ng-template>
-
-          <ng-template [ngIf]="monitor.condition_open_box">
-            <ng-container *ngIf="monitor.condition_new">, </ng-container>
-            <span>Open Box</span>
-          </ng-template>
-
-          <ng-template [ngIf]="monitor.condition_used">
-            <ng-container
-              *ngIf="monitor.condition_new || monitor.condition_open_box"
-              >,
-            </ng-container>
-            <span>Used</span>
-          </ng-template>
-
-          <ng-template
-            [ngIf]="
-              !monitor.condition_new &&
-              !monitor.condition_open_box &&
-              !monitor.condition_used
-            "
-          >
-            <span>None</span>
-          </ng-template>
-        </ng-container>
-      </td>
-
+      <td>{{ getConditionLabels(monitor) }}</td>
       <td>
         <span *ngIf="monitor.exclude_keywords">{{
           monitor.exclude_keywords
@@ -75,18 +46,19 @@
         <span *ngIf="!monitor.recentlink">None</span>
       </td>
       <td>
-        <p-button
-          label="Delete"
-          styleClass="p-button-rounded p-button-danger"
-          icon="pi pi-trash"
-          (click)="deleteMonitor(monitor.id)"
-        ></p-button>
-      </td>
+        <p-splitButton label="Actions" icon="pi pi-cog" [model]="items(monitor.id)" appendTo="body"></p-splitButton>
+      </td>            
     </tr>
   </ng-template>
   <ng-template pTemplate="emptymessage">
     <tr>
-      <td colspan="8">No monitors found</td>
+      <td colspan="9">No monitors found</td>
     </tr>
   </ng-template>
 </p-table>
+</div>
+<p-dialog header="Edit Monitor" [(visible)]="showDialog" [modal]="true" [style]="{width:'600px'}">
+  <div>
+      <app-edit-monitor-menu></app-edit-monitor-menu>
+  </div>
+</p-dialog>
