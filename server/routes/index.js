@@ -234,15 +234,15 @@ router.patch('/monitors/:id', update_limiter, async (req, res) => {
     // Construct the SQL query for updating the monitor
     const query = 'UPDATE monitors SET keywords = ?, chatid = ?, userid = ?, min_price = ?, max_price = ?, condition_new = ?, condition_open_box = ?, condition_used = ?, exclude_keywords = ?, active = ? WHERE id = ?';
     const queryParams = [
-      updateObj.keywords !== undefined ? updateObj.keywords : currentMonitor.keywords,
-      updateObj.chatid !== undefined ? updateObj.chatid : currentMonitor.chatid,
-      userID, // the user ID doesn't change
-      updateObj.min_price !== undefined ? updateObj.min_price : currentMonitor.min_price,
-      updateObj.max_price !== undefined ? updateObj.max_price : currentMonitor.max_price,
+      updateObj.keywords != null ? updateObj.keywords : currentMonitor.keywords,
+      updateObj.chatid != null ? updateObj.chatid : currentMonitor.chatid,
+      userID,
+      updateObj.min_price != null ? updateObj.min_price : currentMonitor.min_price,
+      updateObj.max_price != null ? updateObj.max_price : currentMonitor.max_price,
       'condition_new' in updateObj ? updateObj.condition_new : currentMonitor.condition_new,
       'condition_open_box' in updateObj ? updateObj.condition_open_box : currentMonitor.condition_open_box,
       'condition_used' in updateObj ? updateObj.condition_used : currentMonitor.condition_used,
-      updateObj.exclude_keywords !== undefined ? updateObj.exclude_keywords : currentMonitor.exclude_keywords,
+      updateObj.exclude_keywords != null ? updateObj.exclude_keywords : currentMonitor.exclude_keywords,
       currentMonitor.active,
       monitorId
     ];    
