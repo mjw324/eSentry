@@ -53,7 +53,6 @@ CREATE TABLE IF NOT EXISTS monitors (
   FOREIGN KEY (userid) REFERENCES users(userid) ON DELETE CASCADE
 )`, (err) => {
   if (err) throw err;
-  console.log("Monitors table created or adjusted to reference the new users table.");
 });
 
 // Initialize all active scrapers on server startup

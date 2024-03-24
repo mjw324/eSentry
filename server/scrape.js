@@ -1,100 +1,105 @@
 const axios = require('axios');
 const cheerio = require('cheerio');
 const TelegramBot = require('node-telegram-bot-api');
+const nodemailer = require('nodemailer');
+const db = require('./db');
 const bot_token = process.env.DEVBUILD == 1 ? process.env.TELEGRAM_DEVBOT_TOKEN : process.env.TELEGRAM_BOT_TOKEN;
 const bot = new TelegramBot(bot_token, { polling: true });
-const db = require('./db');
 const monitorIntervals = new Map();
 
 
-// keywords object JSON format. Example is for a "new" condition "iphone" with a price range of $100-$500, excluding "pro" and "max" keywords
-// {
-//   "keywords": "iphone",
-//   "min": 100,
-//   "max": 500,
-//   "new": true,
-//   "open_box": false,
-//   "used": false,
-//   "exclude": "pro max"
-// }
-async function retrieveMonitor(url, chatid, monitors, keywords) {
-  const response = await axios(url);
-  const html = await response.data;
+// SMTP configuration for server email
+const transporter = nodemailer.createTransport({
+  host: process.env.EMAIL_HOST,
+  port: 465,
+  secure: true, // true for port 465
+  auth: {
+    user: process.env.EMAIL_USER,
+    pass: process.env.EMAIL_PASS
+  },
+  tls: {
+    rejectUnauthorized: false // Only use this for development or trusted networks
+  }
+});
 
+
+function sendEmailAlert(item, keywords, recipientEmail) {
+  const mailOptions = {
+    from: `"Monitor Alert" <${process.env.EMAIL_USER}>`,
+    to: recipientEmail,
+    subject: `New Item Found: ${item.name}`,
+    html: `🔍 <b>Search:</b> ${keywords} <br/><br/>
+           🏷️ <b>Product:</b> ${item.name} <br/><br/>
+           💰 <b>Price:</b> ${item.price}<br/><br/>
+           <a href="${item.link}">🛒 View Item on eBay</a>
+           <br><br>
+           <hr>
+           <p><i>If the found item doesn't fully match your search criteria, please visit <a href="https://www.esentry-notify.com/">eSentry</a> to refine your search with excluded keywords.</i></p>
+           <p><i>If you no longer wish to receive alerts, you can delete your monitor on <a href="https://www.esentry-notify.com/">eSentry</a>.</i></p>`
+  };
+
+  transporter.sendMail(mailOptions, (error, info) => {
+    if (error) {
+      return console.log(`Error sending email: ${error}`);
+    }
+    console.log(`Email sent: ${info.messageId}`);
+  });
+}
+
+
+async function retrieveMonitor(url, monitorObj) {
+  const response = await axios(url);
+  const html = response.data;
   const $ = cheerio.load(html);
-  const items = $('li.s-item.s-item__pl-on-bottom');
-  monitors.newScraped = [];
-  // Loop through each item found and add it to the newScrapedMonitors array
-  items.each((index, element) => {
-    // itemName sometimes has the format of "New Listing<item name>", which is when we remove it
+  monitorObj.newScraped = [];
+
+  $('li.s-item.s-item__pl-on-bottom').each((index, element) => {
     const itemName = $(element).find('div.s-item__title').text().replace('New Listing', '');
     const itemPrice = $(element).find('span.s-item__price').text();
     const itemLink = $(element).find('a.s-item__link').attr('href');
 
-    monitors.newScraped.push({
-      name: itemName,
-      price: itemPrice,
-      link: itemLink
-    });
+    monitorObj.newScraped.push({ name: itemName, price: itemPrice, link: itemLink });
   });
-  if (monitors.scraped.length === 0) { // If scrapedMonitors is empty (when scraping loop first starts), it will be filled with newScrapedMonitors
-    monitors.scraped = monitors.newScraped;
-    monitors.newScraped = [];
+
+  // Initial population of scraped items if empty
+  if (monitorObj.scraped.length === 0) {
+    monitorObj.scraped = [...monitorObj.newScraped];
+    monitorObj.newScraped = [];
   } else {
-    // Create array that will hold the difference between scrapedMonitors and newScrapedMonitors
-    var difference = [];
-    for (let i = 0; i < monitors.newScraped.length; i++) {
-      let itemExists = false;
-      for (let j = 0; j < monitors.scraped.length; j++) {
-        if (monitors.newScraped[i].name === monitors.scraped[j].name) { // assuming each item object has a unique id property
-          itemExists = true;
-          break;
-        }
-      }
-      if (!itemExists) {
-        difference.push(monitors.newScraped[i]);
-      }
-    }
-    if (!difference.length) {
-      console.log("No new results for " + keywords);
-    }
+    let difference = monitorObj.newScraped.filter(newItem => !monitorObj.scraped.some(scrapedItem => newItem.name === scrapedItem.name));
 
-    if (difference.length > 0) { // If there is a difference, the first three will be sent to the user
+    if (difference.length) {
+      console.log("New items found:", difference.slice(0, 3)); // Log the first three new items found
 
-      // The following commented out code is for every item found in the difference. For less spam on the user's end, only the first three will be sent
-
-      // difference.forEach(item => {
-      //   console.log(`New Item Found! Link: ${item.link}`);
-      //   bot.sendMessage(chatid, `${item.name} for ${item.price} Link: ${item.link}`);
-      //   // Store the link of the most recent item found in the database
-      //   db.pool.query('UPDATE monitors SET recentlink = ? WHERE keywords = ? AND chatid = ?', [
-      //     item.link, keywords, chatid
-      //   ], function (error, results, fields) {
-      //     if (error) console.log(error);
-      //   });
-      // });
-      console.log("Difference between newScrapedMonitors and scrapedMonitors: ");
-      console.log(difference);
-
-      for (let i = 0; i < Math.min(3, difference.length); i++) {
-        let item = difference[i];
+      difference.slice(0, 3).forEach(item => {
         console.log(`New Item Found! Link: ${item.link}`);
-        bot.sendMessage(chatid, `🔍 <b>Search:</b> \n${keywords} \n\n🏷️ <b>Product:</b> \n${item.name} \n\n💰 <b>Price:</b> \n${item.price}\n\n<a href="${item.link}">🛒 Item on eBay</a>`, { parse_mode: "HTML" });
-        // Store the link of the most recent item found in the database
-        db.pool.query('UPDATE monitors SET recentlink = ? WHERE keywords = ? AND chatid = ?', [
-          item.link, keywords, chatid
-        ], function (error, results, fields) {
-          if (error) console.log(error);
-        });
-      }
+        // Send Telegram alert if chatid is present
+        if (monitorObj.chatid) {
+          console.log(monitorObj.chatid);
+          bot.sendMessage(monitorObj.chatid, `🔍 <b>Search:</b> ${monitorObj.keywords}\n\n🏷️ <b>Product:</b> ${item.name}\n\n💰 <b>Price:</b> ${item.price}\n\n<a href="${item.link}">🛒 View Item on eBay</a>`, { parse_mode: "HTML" });
+        }
+        // Send email alert if email is present
+        if (monitorObj.email) {
+          sendEmailAlert(item, monitorObj.keywords, monitorObj.email);
+        }
+      });
+      
+      // Update the database with the most recent link from the first item in the difference array
+      const mostRecentItem = difference[0];
+      db.pool.query('UPDATE monitors SET recentlink = ? WHERE id = ?', [mostRecentItem.link, monitorObj.id], function (error) {
+        if (error) console.log(error);
+      });
+
+    } else {
+      console.log(`No new results for ${monitorObj.keywords}`);
     }
-    monitors.scraped = monitors.newScraped;
-    monitors.newScraped = []; // newScrapedMonitors will be emptied
+
+    // Update scraped items after processing
+    monitorObj.scraped = [...monitorObj.newScraped];
   }
-};
+}
 
 function addScraper(monitorObj, milliseconds) {
-
   var url = `https://www.ebay.com/sch/i.html?_from=R40&_sacat=0&LH_BIN=1&_sop=10&rt=nc&_nkw=`;
 
   // take specified keywords and replace whitespace chars with the char '+' for URL
@@ -115,12 +120,11 @@ function addScraper(monitorObj, milliseconds) {
   // add price range filter if specified
   monitorObj.min_price ? url += `&_udlo=${monitorObj.min_price}` : null;
   monitorObj.max_price ? url += `&_udhi=${monitorObj.max_price}` : null;
-
-  // console.log(`URL: ${url}`);
-  let monitors = { scraped: [], newScraped: [] };
+  monitorObj.scraped = [];
+  monitorObj.newScraped = [];
   // setInterval will call retrieveMonitor in the specified interval of milliseconds
   const intervalID = setInterval(() => {
-    retrieveMonitor(url, monitorObj.chatid, monitors, monitorObj.keywords).catch(error => {
+    retrieveMonitor(url, monitorObj).catch(error => {
       console.error(`Failed to retrieve monitor for keywords "${monitorObj.keywords}" and chatid "${monitorObj.chatid}":`, error);
     });
   }, milliseconds);

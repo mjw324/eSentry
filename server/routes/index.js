@@ -1,16 +1,18 @@
 const express = require('express');
-const router = express.Router();
-const db = require('../db');
 // Import BadWords module. This is to reject any attempts to add a monitor with a bad word in the keywords
 const BadWords = require('bad-words');
 const bcrypt = require('bcrypt');
-const saltRounds = 10; // for bcrypt password hashing
-const { v4: uuidv4 } = require('uuid'); // Use UUID to generate unique IDs
-const filter = new BadWords();
+const db = require('../db');
+// Use UUID to generate unique IDs
+const { v4: uuidv4 } = require('uuid'); 
 // Import rateLimit module. This is to limit the number of requests to the server
 const rateLimit = require('express-rate-limit');
 // Import addScraper function from scrape.js
 const { addScraper, stopScraper } = require('../scrape');
+const router = express.Router();
+const saltRounds = 10; // for bcrypt password hashing
+const filter = new BadWords();
+
 
 
 // This limiter is meant for the requests that take some execution time on the server
