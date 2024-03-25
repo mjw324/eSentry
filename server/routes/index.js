@@ -58,9 +58,10 @@ router.get('/monitors', get_post_limiter, async (req, res, next) => {
 router.post('/monitors', async (req, res) => {
   const monitorObj = req.body;
   const userID = req.headers.userid;
-  // Validate required fields
-  if (!monitorObj.keywords || !monitorObj.chatid || !userID) {
-    return res.status(400).json({ message: 'Keywords, Telegram ID, and User ID are all required' });
+
+  // Telegram ID and/or email is required, keywords are required
+  if (!monitorObj.keywords || (!monitorObj.chatid && !monitorObj.email) || !userID) {
+    return res.status(400).json({ message: 'Keywords and User ID are required. Either Telegram ID or Email must be provided.' });
   }
 
   // Check for inappropriate words in keywords
@@ -75,18 +76,19 @@ router.post('/monitors', async (req, res) => {
       return res.status(404).json({ message: 'User not found in database' });
     }
 
-    // Check the number of active monitors for the user
-    const [countResult] = await db.pool.promise().query('SELECT COUNT(*) AS count FROM monitors WHERE userid = ? AND active = 1', [monitorObj.userid]);
+    // Check the number of active monitors for the user - limit it to 2 active monitors
+    const [countResult] = await db.pool.promise().query('SELECT COUNT(*) AS count FROM monitors WHERE userid = ? AND active = 1', [userID]);
     if (countResult[0].count >= 2) {
       return res.status(400).json({ message: 'Maximum number of active monitors reached' });
     }
 
     // Insert the new monitor
     const [insertResult] = await db.pool.promise().query(
-      'INSERT INTO monitors (keywords, chatid, userid, recentlink, min_price, max_price, condition_new, condition_open_box, condition_used, exclude_keywords) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)',
+      'INSERT INTO monitors (keywords, chatid, email, userid, recentlink, min_price, max_price, condition_new, condition_open_box, condition_used, exclude_keywords) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)',
       [
         monitorObj.keywords,
-        monitorObj.chatid,
+        monitorObj.chatid || null, // Allow null if chatid is not provided
+        monitorObj.email || null, // Allow null if email is not provided
         userID,
         null, // recentlink is always null/non-existent when scraper is first initialized
         monitorObj.min_price || null,
@@ -105,6 +107,7 @@ router.post('/monitors', async (req, res) => {
     res.status(500).json({ message: 'Internal server error', error: error.message });
   }
 });
+
 
 
 router.patch('/monitors/:id/status', update_limiter, async (req, res) => {
@@ -213,45 +216,65 @@ router.delete('/monitors/:id', get_post_limiter, async (req, res, next) => {
   }
 });
 
-
+// PATCH: Update an existing monitor
 router.patch('/monitors/:id', update_limiter, async (req, res) => {
   const monitorId = req.params.id;
   const updateObj = req.body; // Contains updated monitor details
   const userID = req.headers.userid;
 
+  // User ID is required for identification
   if (!userID) {
     return res.status(400).json({ message: 'User ID is required' });
+  }
+
+  // Ensure at least one notification method is provided
+  if (!updateObj.chatid && !updateObj.email) {
+    return res.status(400).json({ message: 'At least one notification method (Telegram ID or email) is required' });
   }
 
   try {
     // Fetch the current state of the monitor
     const [results] = await db.pool.promise().query('SELECT * FROM monitors WHERE id = ? AND userid = ?', [monitorId, userID]);
-
     if (results.length === 0) {
       return res.status(404).json({ message: `Monitor with id ${monitorId} not found.` });
     }
-
     const currentMonitor = results[0];
 
-    // Construct the SQL query for updating the monitor
-    const query = 'UPDATE monitors SET keywords = ?, chatid = ?, userid = ?, min_price = ?, max_price = ?, condition_new = ?, condition_open_box = ?, condition_used = ?, exclude_keywords = ?, active = ? WHERE id = ?';
+    // Construct the SQL query for updating the monitor, now including the email field
+    const query = `
+      UPDATE monitors SET 
+      keywords = ?, 
+      chatid = ?, 
+      email = ?, 
+      userid = ?, 
+      min_price = ?, 
+      max_price = ?, 
+      condition_new = ?, 
+      condition_open_box = ?, 
+      condition_used = ?, 
+      exclude_keywords = ?, 
+      active = ? 
+      WHERE id = ?
+    `;
     const queryParams = [
-      updateObj.keywords != null ? updateObj.keywords : currentMonitor.keywords,
-      updateObj.chatid != null ? updateObj.chatid : currentMonitor.chatid,
-      userID,
-      updateObj.min_price != null ? updateObj.min_price : currentMonitor.min_price,
-      updateObj.max_price != null ? updateObj.max_price : currentMonitor.max_price,
-      'condition_new' in updateObj ? updateObj.condition_new : currentMonitor.condition_new,
-      'condition_open_box' in updateObj ? updateObj.condition_open_box : currentMonitor.condition_open_box,
-      'condition_used' in updateObj ? updateObj.condition_used : currentMonitor.condition_used,
-      updateObj.exclude_keywords != null ? updateObj.exclude_keywords : currentMonitor.exclude_keywords,
+      updateObj.keywords,
+      updateObj.chatid,
+      updateObj.email,
+      userID, // User ID does not change
+      updateObj.min_price,
+      updateObj.max_price,
+      updateObj.condition_new,
+      updateObj.condition_open_box,
+      updateObj.condition_used,
+      updateObj.exclude_keywords,
       currentMonitor.active,
       monitorId
-    ];    
+    ];
 
+    // Execute the update
     await db.pool.promise().query(query, queryParams);
 
-    // If monitor is currently active we need to stop the current scraper and start a new one with the updated parameters
+    // Restart scraper if needed
     if (currentMonitor.active) {
       stopScraper(parseInt(monitorId));
       addScraper(updateObj, process.env.SCRAPE_REFRESH_RATE);
@@ -263,7 +286,6 @@ router.patch('/monitors/:id', update_limiter, async (req, res) => {
     res.status(500).json({ message: 'Error updating monitor', error: error.message });
   }
 });
-
 
 // POST: Register a new user
 router.post('/register', async (req, res) => {

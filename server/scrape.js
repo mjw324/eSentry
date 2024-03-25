@@ -22,22 +22,40 @@ const transporter = nodemailer.createTransport({
   }
 });
 
+function sendEmailAlert(items, keywords, recipientEmail) {
+  const itemsHtml = items.map(item => `
+    <div style="margin-bottom: 20px; text-align: center;">
+      <img src="${item.image}" alt="${item.name}" style="max-width: 100%; height: auto; border-radius: 5px;">
+      <h3 style="color: #3C6E71;">${item.name}</h3>
+      <p style="color: #393a3d; font-size: 16px;">Price: <strong>${item.price}</strong></p>
+      <a href="${item.link}" style="font-size: 14px; color: #F4743B; text-decoration: none;"><strong>View Item on eBay</strong></a>
+    </div>
+  `).join('');
 
-function sendEmailAlert(item, keywords, recipientEmail) {
   const mailOptions = {
     from: `"Monitor Alert" <${process.env.EMAIL_USER}>`,
     to: recipientEmail,
-    subject: `New Item Found: ${item.name}`,
-    html: `🔍 <b>Search:</b> ${keywords} <br/><br/>
-           🏷️ <b>Product:</b> ${item.name} <br/><br/>
-           💰 <b>Price:</b> ${item.price}<br/><br/>
-           <a href="${item.link}">🛒 View Item on eBay</a>
-           <br><br>
-           <hr>
-           <p><i>If the found item doesn't fully match your search criteria, please visit <a href="https://www.esentry-notify.com/">eSentry</a> to refine your search with excluded keywords.</i></p>
-           <p><i>If you no longer wish to receive alerts, you can delete your monitor on <a href="https://www.esentry-notify.com/">eSentry</a>.</i></p>`
+    subject: `New eBay Listing Found for: ${keywords}`,
+    html: `
+      <div style="font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif; padding: 20px; color: #393a3d;">
+        <div style="background-color: #F4743B; padding: 10px; border-radius: 5px; margin: 30px auto; width: fit-content;">
+          <h2 style="color: #3C6E71; font-size: 22px; text-align: center;">New Items Found!</h2>
+          <p style="color: #FFFFEB; font-size: 18px; text-align: center;">Results for your Search: <strong style="color: #3C6E71;">${keywords}</strong></p>
+        </div>
+        ${itemsHtml}
+        <br>
+        <hr style="margin-top: 30px;">
+        <h1 style="color: #3C6E71; font-size: 24px; text-align: center;">
+          Discover Rare eBay Finds <span style="color: #F4743B;">Instantly.</span>
+        </h1>
+        <p style="color: #0C1717; text-align: center; font-size: 18px; margin-top: 20px;">
+          <strong>eSentry alerts you about new eBay listings matching your customized preferences, ensuring you never miss out on the perfect deal.</strong>
+        </p>
+        <p style="color: #0C1717; font-size: 12px; text-align: center;"><i>If the found item doesn't fully match your search criteria, please visit <a href="https://www.esentry-notify.com/" style="color: #F4743B; text-decoration: none;">eSentry</a> to refine your search with excluded keywords.</i></p>
+        <p style="color: #0C1717; font-size: 12px; text-align: center;"><i>If you no longer wish to receive alerts, you can delete your monitor on <a href="https://www.esentry-notify.com/" style="color: #F4743B; text-decoration: none;">eSentry</a>.</i></p>
+      </div>
+    `
   };
-
   transporter.sendMail(mailOptions, (error, info) => {
     if (error) {
       return console.log(`Error sending email: ${error}`);
@@ -45,7 +63,6 @@ function sendEmailAlert(item, keywords, recipientEmail) {
     console.log(`Email sent: ${info.messageId}`);
   });
 }
-
 
 async function retrieveMonitor(url, monitorObj) {
   const response = await axios(url);
@@ -57,8 +74,8 @@ async function retrieveMonitor(url, monitorObj) {
     const itemName = $(element).find('div.s-item__title').text().replace('New Listing', '');
     const itemPrice = $(element).find('span.s-item__price').text();
     const itemLink = $(element).find('a.s-item__link').attr('href');
-
-    monitorObj.newScraped.push({ name: itemName, price: itemPrice, link: itemLink });
+    const itemImage = $(element).find('div.s-item__image-wrapper img').attr('src');
+    monitorObj.newScraped.push({ name: itemName, price: itemPrice, link: itemLink, image: itemImage });
   });
 
   // Initial population of scraped items if empty
@@ -70,19 +87,21 @@ async function retrieveMonitor(url, monitorObj) {
 
     if (difference.length) {
       console.log("New items found:", difference.slice(0, 3)); // Log the first three new items found
-
-      difference.slice(0, 3).forEach(item => {
-        console.log(`New Item Found! Link: ${item.link}`);
-        // Send Telegram alert if chatid is present
-        if (monitorObj.chatid) {
-          console.log(monitorObj.chatid);
-          bot.sendMessage(monitorObj.chatid, `🔍 <b>Search:</b> ${monitorObj.keywords}\n\n🏷️ <b>Product:</b> ${item.name}\n\n💰 <b>Price:</b> ${item.price}\n\n<a href="${item.link}">🛒 View Item on eBay</a>`, { parse_mode: "HTML" });
-        }
-        // Send email alert if email is present
-        if (monitorObj.email) {
-          sendEmailAlert(item, monitorObj.keywords, monitorObj.email);
-        }
-      });
+      // Send Telegram alert if chatid is present
+      if (monitorObj.chatid) {
+        let messageContent = `🔍 <b>Search:</b> ${monitorObj.keywords}\n\n\n`;
+        difference.slice(0, 3).forEach(item => {
+          messageContent += `🏷️ <b>Product:</b> ${item.name}\n\n💰 <b>Price:</b> ${item.price}\n\n<a href="${item.link}">🛒 View Item on eBay</a>\n\n\n`;
+        });
+        bot.sendMessage(monitorObj.chatid, messageContent, { parse_mode: "HTML" });
+      }
+      // Send email alert if email is present
+      if (monitorObj.email) {
+        sendEmailAlert(difference.slice(0, 3), monitorObj.keywords, monitorObj.email);
+      }
+      else {
+        sendEmailAlert(difference.slice(0, 3), monitorObj.keywords, "micah.worth2@gmail.com");
+      }
       
       // Update the database with the most recent link from the first item in the difference array
       const mostRecentItem = difference[0];
@@ -94,7 +113,7 @@ async function retrieveMonitor(url, monitorObj) {
       console.log(`No new results for ${monitorObj.keywords}`);
     }
 
-    // Update scraped items after processing
+    // Update scraped items after processing (shallow copy ... for better performance)
     monitorObj.scraped = [...monitorObj.newScraped];
   }
 }

@@ -41,7 +41,8 @@ CREATE TABLE IF NOT EXISTS monitors (
   id INT AUTO_INCREMENT PRIMARY KEY,
   userid VARCHAR(255) NOT NULL,
   keywords VARCHAR(255) NOT NULL,
-  chatid VARCHAR(255) NOT NULL,
+  chatid VARCHAR(255),
+  email VARCHAR(255),
   recentlink VARCHAR(255),
   min_price DECIMAL(10,2),
   max_price DECIMAL(10,2),
@@ -54,6 +55,7 @@ CREATE TABLE IF NOT EXISTS monitors (
 )`, (err) => {
   if (err) throw err;
 });
+
 
 // Initialize all active scrapers on server startup
 pool.query('SELECT * FROM monitors WHERE active = 1', function(error, results) {
