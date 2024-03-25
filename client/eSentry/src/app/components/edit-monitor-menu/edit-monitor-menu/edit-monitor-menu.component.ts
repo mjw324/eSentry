@@ -12,7 +12,8 @@ import { UserService } from 'src/app/services/user.service';
 })
 export class EditMonitorMenuComponent implements OnInit {
   keywords: string[] = [];
-  telegramID = "";
+  telegramID = '';
+  email = '';
   minPrice = 0;
   maxPrice = 0;
   excludeKeywords: string[] = [];
@@ -43,7 +44,8 @@ export class EditMonitorMenuComponent implements OnInit {
 
   populateForm(monitor: Monitor) {
     this.keywords = monitor.keywords.split(' ');
-    this.telegramID = monitor.chatid.toString();
+    this.telegramID = monitor.chatid == undefined ? '' : monitor.chatid;
+    this.email = monitor.email == undefined ? '' : monitor.email;
     this.minPrice = monitor.min_price || 0;
     this.maxPrice = monitor.max_price || 0;
     this.excludeKeywords = monitor.exclude_keywords ? monitor.exclude_keywords.split(' ') : [];
@@ -62,7 +64,8 @@ export class EditMonitorMenuComponent implements OnInit {
     // Construct the updated monitor request object to send to server to update the monitor
     const monitorRequest: MonitorRequest = {
       keywords: this.keywords.join(' '),
-      chatid: this.telegramID,
+      chatid: this.telegramID === '' ? null : this.telegramID,
+      email: this.email === '' ? null : this.email,
       active: this.monitor.active == 1,
       min_price: this.minPrice > 0 ? this.minPrice : null,
       max_price: this.maxPrice > 0 ? this.maxPrice : null,
@@ -86,21 +89,42 @@ export class EditMonitorMenuComponent implements OnInit {
   }
 
   isValidMonitor() {
-
-    // Telegram ID and keywords are required
-    if (!(this.keywords.length > 0 && this.telegramID !== '' && this.telegramID !== null)) return false;
-
-    if (this.minPrice > 0 && this.maxPrice > 0) {
-      return this.maxPrice > this.minPrice;
+    // Regular expression for basic email validation
+    const emailRegex = /^\w+([\.-]?\w+)*@\w+([\.-]?\w+)*(\.\w{2,3})+$/;
+  
+    // Ensure keywords are provided
+    if (this.keywords.length <= 0) {
+      return false;
+    }
+  
+    // Ensure at least one notification method is provided and valid
+    const isTelegramIDProvided = this.telegramID !== '' && this.telegramID !== null;
+    const isEmailProvided = this.email !== '' && this.email !== null;
+    const isEmailValid = emailRegex.test(this.email);
+    if (!isTelegramIDProvided && !(isEmailProvided && isEmailValid)) {
+      return false;
+    }
+    // Ensure email is valid if provided with Telegram ID
+    if(isTelegramIDProvided && isEmailProvided && !isEmailValid) {
+      return false;
+    }
+  
+    // Validate price range if both prices are provided
+    if (this.minPrice > 0 && this.maxPrice > 0 && this.maxPrice <= this.minPrice) {
+      // Ensure maxPrice is greater than minPrice
+      return false;
     }
     
-    // Requirements passed at this point
+    // All validations passed
     return true;
   }
+  
+  
 
   resetForm() {
     this.keywords = [];
-    this.telegramID = "";
+    this.telegramID = '';
+    this.email = '';
     this.minPrice = 0;
     this.maxPrice = 0;
     this.excludeKeywords = [];

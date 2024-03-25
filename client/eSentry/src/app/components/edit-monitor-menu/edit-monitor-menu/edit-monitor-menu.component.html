@@ -19,7 +19,18 @@
       ></small
     >
   </span>
-  
+
+  <span class="monitor_element">
+    <label htmlFor="email">Email Address</label>
+    <input
+      type="text"
+      pInputText
+      id="email"
+      aria-describedby="email-help"
+      [(ngModel)]="email"/>
+    <small id="email-help">Note that alerts will be sent to the email address provided</small>
+  </span>
+
   <span class="monitor_element">
     <label htmlFor="minPrice">Minimum Price</label>
     <input type="number" pInputText [(ngModel)]="minPrice" />

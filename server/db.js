@@ -32,7 +32,6 @@ CREATE TABLE IF NOT EXISTS users (
   created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 )`, (err) => {
   if (err) throw err;
-  console.log("Users table created or already exists.");
 });
 
 // Adjusting the monitors table to reference the users table correctly
@@ -53,7 +52,10 @@ CREATE TABLE IF NOT EXISTS monitors (
   active BOOLEAN DEFAULT 0,
   FOREIGN KEY (userid) REFERENCES users(userid) ON DELETE CASCADE
 )`, (err) => {
-  if (err) throw err;
+  if (err){
+    console.log("Error creating monitors table:", err);
+    throw err;
+  } 
 });
 
 

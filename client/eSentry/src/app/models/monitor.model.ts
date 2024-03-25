@@ -1,7 +1,8 @@
 export type Monitor = {
     id: number;
     keywords: string;
-    chatid: string;
+    chatid?: string;
+    email?: string;
     active: number;
     recentlink?: string;
     min_price?: number;

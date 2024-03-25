@@ -99,10 +99,6 @@ async function retrieveMonitor(url, monitorObj) {
       if (monitorObj.email) {
         sendEmailAlert(difference.slice(0, 3), monitorObj.keywords, monitorObj.email);
       }
-      else {
-        sendEmailAlert(difference.slice(0, 3), monitorObj.keywords, "micah.worth2@gmail.com");
-      }
-      
       // Update the database with the most recent link from the first item in the difference array
       const mostRecentItem = difference[0];
       db.pool.query('UPDATE monitors SET recentlink = ? WHERE id = ?', [mostRecentItem.link, monitorObj.id], function (error) {

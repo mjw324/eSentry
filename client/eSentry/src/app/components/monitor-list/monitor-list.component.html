@@ -6,6 +6,7 @@
       <th>Status</th>
       <th>Keywords</th>
       <th>TelegramID</th>
+      <th>Email</th>
       <th>Minimum Price</th>
       <th>Maximum Price</th>
       <th>Condition(s)</th>
@@ -24,6 +25,7 @@
       </td>
       <td>{{ monitor.keywords }}</td>
       <td>{{ monitor.chatid }}</td>
+      <td>{{ monitor.email }}</td>
       <td>
         <span *ngIf="monitor.min_price">${{ monitor.min_price }}</span>
       </td>
@@ -52,7 +54,7 @@
   </ng-template>
   <ng-template pTemplate="emptymessage">
     <tr>
-      <td colspan="9">No monitors found</td>
+      <td colspan="10">No monitors found</td>
     </tr>
   </ng-template>
 </p-table>
