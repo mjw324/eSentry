@@ -7,8 +7,9 @@ const db = require('../db');
 const { v4: uuidv4 } = require('uuid'); 
 // Import rateLimit module. This is to limit the number of requests to the server
 const rateLimit = require('express-rate-limit');
+const moment = require('moment');
 // Import addScraper function from scrape.js
-const { addScraper, stopScraper } = require('../scrape');
+const { addScraper, stopScraper, grabItemSoldHistory } = require('../scrape');
 const router = express.Router();
 const saltRounds = 10; // for bcrypt password hashing
 const filter = new BadWords();
@@ -388,6 +389,69 @@ router.post('/register-or-login', get_post_limiter, async (req, res) => {
   } catch (error) {
     console.error('Database error during user registration or login:', error);
     res.status(500).json({ message: 'Internal server error', error: error.message });
+  }
+});
+
+// POST: Retrieve item statistics
+router.post('/itemStatistics', async (req, res) => {
+  const monitorObj = req.body;
+  const userID = req.headers.userid;
+
+  // if (!monitorObj.keywords || !userID) {
+  //   return res.status(400).json({ message: 'Keywords and User ID are required.' });
+  // }
+
+  // // Verify if the user exists in the users table
+  // const [users] = await db.pool.promise().query('SELECT id FROM users WHERE userid = ?', [userID]);
+  // if (users.length === 0) {
+  //   return res.status(404).json({ message: 'User not found in database' });
+  // }
+
+  // Check for inappropriate words in keywords
+  if (filter.isProfane(monitorObj.keywords)) {
+    return res.status(400).json({ message: 'Keywords contain inappropriate words' });
+  }
+
+  try {
+    const soldHistory = await grabItemSoldHistory(monitorObj);
+    const prices = soldHistory.map(item => parseFloat(item.price.replace(/[^0-9.-]+/g,"")));
+    console.log(soldHistory)
+    // Calculate statistics
+    const sum = prices.reduce((a, b) => a + b, 0);
+    const avgPrice = sum / prices.length || 0;
+    const minPrice = Math.min(...prices);
+    const maxPrice = Math.max(...prices);
+
+
+    // Calculate sales volumes
+    const salesLastMonth = soldHistory.filter(item => moment(item.date, 'MMM DD, YYYY').isAfter(moment().subtract(1, 'month'))).length;
+    const salesLastYear = soldHistory.filter(item => moment(item.date, 'MMM DD, YYYY').isAfter(moment().subtract(1, 'year'))).length;
+
+    // Determine the dataset's date range
+    const earliestDateInDataset = moment.min(soldHistory.map(item => moment(item.date, 'MMM DD, YYYY')));
+    const mostRecentDate = moment.max(soldHistory.map(item => moment(item.date, 'MMM DD, YYYY')));
+
+    // Check if the dataset possibly includes all sales within the last month/year
+    const includesSalesLastMonth = mostRecentDate.isSameOrAfter(moment().subtract(1, 'month'));
+    const includesSalesLastYear = mostRecentDate.isSameOrAfter(moment().subtract(1, 'year'));
+    console.log(earliestDateInDataset, mostRecentDate)
+    // If the earliest date is less than a month/year ago, there are probably more sales
+    const mightHaveMoreSalesLastMonth = includesSalesLastMonth && !earliestDateInDataset.isSameOrBefore(moment().subtract(1, 'month'));
+    const mightHaveMoreSalesLastYear = includesSalesLastYear && !earliestDateInDataset.isSameOrBefore(moment().subtract(1, 'year'));
+    console.log(earliestDateInDataset.isSameOrBefore(moment().subtract(1, 'year')));
+
+    // Respond with adjusted metrics
+    res.json({
+      averagePrice: avgPrice.toFixed(2),
+      minPrice: minPrice.toFixed(2),
+      maxPrice: maxPrice.toFixed(2),
+      volumeLastMonth: salesLastMonth + (mightHaveMoreSalesLastMonth ? "+" : ""),
+      volumeLastYear: salesLastYear + (mightHaveMoreSalesLastYear ? "+" : "")
+    });
+
+  } catch (error) {
+    console.error('Error retrieving item statistics:', error);
+    res.status(500).json({ message: 'Error retrieving item statistics', error: error.message });
   }
 });
 

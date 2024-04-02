@@ -3,6 +3,7 @@ const cheerio = require('cheerio');
 const TelegramBot = require('node-telegram-bot-api');
 const nodemailer = require('nodemailer');
 const db = require('./db');
+const { sourcerepo } = require('googleapis/build/src/apis/sourcerepo');
 const bot_token = process.env.DEVBUILD == 1 ? process.env.TELEGRAM_DEVBOT_TOKEN : process.env.TELEGRAM_BOT_TOKEN;
 const bot = new TelegramBot(bot_token, { polling: true });
 const monitorIntervals = new Map();
@@ -159,4 +160,46 @@ function stopScraper(monitorID) {
   }
 }
 
-module.exports = { addScraper, stopScraper };
+async function grabItemSoldHistory(monitorObj) {
+  // ipg can change between 60, 120, and 240 - change according to how many items you want to scrape. This affects response time
+  var url = `https://www.ebay.com/sch/i.html?LH_Complete=1&LH_Sold=1&LH_PrefLoc=1&_ipg=120&_nkw=`;
+    // take specified keywords and replace whitespace chars with the char '+' for URL
+    url += monitorObj.keywords.replace(/ /g, "+");
+    // add exclude keywords to URL if specified
+    monitorObj.exclude_keywords ? url += `+-${monitorObj.exclude_keywords.replace(/ /g, "+-")}` : null;
+    // add conditions to url if specified
+    let condition = '';
+    monitorObj.condition_new ? condition += '1000|' : null;
+    monitorObj.condition_open_box ? condition += '1500|' : null;
+    monitorObj.condition_used ? condition += '3000|' : null;
+    if (condition.endsWith('|')) {
+      condition = condition.slice(0, -1);  // removes trailing pipe char '|'
+    }
+    // If condition is not empty, add parameter to the URL
+    condition ? url += `&LH_ItemCondition=${condition}` : null;
+    // add price range filter if specified
+    monitorObj.min_price ? url += `&_udlo=${monitorObj.min_price}` : null;
+    monitorObj.max_price ? url += `&_udhi=${monitorObj.max_price}` : null;
+
+    // Retrieve the sold history of the item
+    const response = await axios(url);
+    const html = response.data;
+    const $ = cheerio.load(html);
+    soldHistory = [];
+    $('li.s-item.s-item__pl-on-bottom').each((index, element) => {
+      const itemPrice = $(element).find('span.s-item__price').first().text();
+      if (!itemPrice) {
+        console.warn('Item price not found, skipping item.');
+        return; // Skip this iteration if price is not found
+      }
+      let soldDate = $(element).find('div.s-item__caption-section div.s-item__title--tag span.POSITIVE').first().text().replace('Sold', '').trim();
+      if(!soldDate) {
+        console.warn('Sold Date not found, skipping item.');
+        return; // Skip this iteration if price is not found
+      }
+      soldHistory.push({ price: itemPrice, date: soldDate });
+    });    
+    return soldHistory;
+}
+
+module.exports = { addScraper, stopScraper, grabItemSoldHistory };

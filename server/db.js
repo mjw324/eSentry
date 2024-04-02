@@ -1,5 +1,5 @@
 const mysql = require('mysql2');
-const { addScraper } = require('./scrape');
+const { addScraper, grabItemSoldHistory } = require('./scrape');
 
 // Database configuration
 const dbConfig = {
