@@ -26,9 +26,6 @@ export class MonitorListComponent implements OnInit {
   ) {}
 
   ngOnInit(): void {
-    this.intervalID = setInterval(() => {
-      this.monitorService.fetchMonitors(this.userService.getCurrentUserID());
-    }, 10000);
     this.monitorService.fetchMonitors(this.userService.getCurrentUserID());
     
     // Subscribe to the editMonitorDialog observable to control the showDialog state

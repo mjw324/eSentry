@@ -397,15 +397,15 @@ router.post('/itemStatistics', async (req, res) => {
   const monitorObj = req.body;
   const userID = req.headers.userid;
 
-  // if (!monitorObj.keywords || !userID) {
-  //   return res.status(400).json({ message: 'Keywords and User ID are required.' });
-  // }
+  if (!monitorObj.keywords || !userID) {
+    return res.status(400).json({ message: 'Keywords and User ID are required.' });
+  }
 
-  // // Verify if the user exists in the users table
-  // const [users] = await db.pool.promise().query('SELECT id FROM users WHERE userid = ?', [userID]);
-  // if (users.length === 0) {
-  //   return res.status(404).json({ message: 'User not found in database' });
-  // }
+  // Verify if the user exists in the users table
+  const [users] = await db.pool.promise().query('SELECT id FROM users WHERE userid = ?', [userID]);
+  if (users.length === 0) {
+    return res.status(404).json({ message: 'User not found in database' });
+  }
 
   // Check for inappropriate words in keywords
   if (filter.isProfane(monitorObj.keywords)) {
@@ -434,11 +434,9 @@ router.post('/itemStatistics', async (req, res) => {
     // Check if the dataset possibly includes all sales within the last month/year
     const includesSalesLastMonth = mostRecentDate.isSameOrAfter(moment().subtract(1, 'month'));
     const includesSalesLastYear = mostRecentDate.isSameOrAfter(moment().subtract(1, 'year'));
-    console.log(earliestDateInDataset, mostRecentDate)
     // If the earliest date is less than a month/year ago, there are probably more sales
     const mightHaveMoreSalesLastMonth = includesSalesLastMonth && !earliestDateInDataset.isSameOrBefore(moment().subtract(1, 'month'));
     const mightHaveMoreSalesLastYear = includesSalesLastYear && !earliestDateInDataset.isSameOrBefore(moment().subtract(1, 'year'));
-    console.log(earliestDateInDataset.isSameOrBefore(moment().subtract(1, 'year')));
 
     // Respond with adjusted metrics
     res.json({

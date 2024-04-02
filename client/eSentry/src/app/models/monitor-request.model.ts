@@ -2,7 +2,7 @@ export type MonitorRequest = {
     keywords: string;
     chatid?: string | null;
     email?: string | null;
-    active: boolean;
+    active?: boolean;
     min_price?: number | null;
     max_price?: number | null;
     exclude_keywords?: string | null;

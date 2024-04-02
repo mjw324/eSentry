@@ -37,6 +37,7 @@ import { RegisterComponent } from './register/register.component';
 import { ErrorHandlerService } from './services/error-handler.service';
 import { GlobalErrorHandler } from './services/global-error-handler';
 import { EditMonitorMenuComponent } from './components/edit-monitor-menu/edit-monitor-menu/edit-monitor-menu.component';
+import { ItemCheckerMenuComponent } from './item-checker-menu/item-checker-menu.component';
 
 @NgModule({
   declarations: [
@@ -48,6 +49,7 @@ import { EditMonitorMenuComponent } from './components/edit-monitor-menu/edit-mo
     SigninComponent,
     RegisterComponent,
     EditMonitorMenuComponent,
+    ItemCheckerMenuComponent,
   ],
   imports: [
     BrowserModule,

@@ -14,6 +14,7 @@ export class HomeComponent implements OnInit {
 
   user = DEFAULT_USER;
   showDialog = false;
+  showItemCheckerDialog = false; 
 
   items = [
     {
@@ -25,6 +26,17 @@ export class HomeComponent implements OnInit {
             this.showDialog = false
         })
         this.showDialog = true
+      }
+    },
+    {
+      label: 'Check Item',
+      icon: 'pi pi-search',
+      command: () => {
+        this.dialogService.getCheckItemDialog().subscribe(result => {
+          if (this.showItemCheckerDialog)
+            this.showItemCheckerDialog = false
+        })
+        this.showItemCheckerDialog = true
       }
     },
     {

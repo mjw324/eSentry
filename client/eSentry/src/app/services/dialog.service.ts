@@ -9,15 +9,21 @@ export class DialogService {
   // Dialog control for adding a new monitor
   private newMonitorDialog: Subject<boolean> = new Subject<boolean>();
 
+  // Dialog control for checking an item
+  private checkItemDialog: Subject<boolean> = new Subject<boolean>();
+
   // Dialog control for editing an existing monitor
   private editMonitorDialog: Subject<boolean> = new Subject<boolean>();
   private editMonitorData: Subject<Monitor | null> = new Subject<Monitor | null>();
 
   constructor() {}
 
-  // Existing methods for handling new monitor dialog
   getNewMonitorDialog(): Observable<boolean> {
     return this.newMonitorDialog.asObservable();
+  }
+
+  getCheckItemDialog(): Observable<boolean> {
+    return this.checkItemDialog.asObservable();
   }
 
   openNewMonitorDialog() {
@@ -26,6 +32,10 @@ export class DialogService {
 
   closeNewMonitorDialog() {
     this.newMonitorDialog.next(false);
+  }
+
+  closeCheckItemDialog() {
+    this.checkItemDialog.next(false);
   }
 
   getEditMonitorDialog(): Observable<boolean> {

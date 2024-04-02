@@ -4,6 +4,7 @@ import { tap } from 'rxjs/operators';
 import { Monitor } from '../models/monitor.model';
 import { HttpClient, HttpHeaders } from '@angular/common/http';
 import { MonitorRequest } from '../models/monitor-request.model';
+import { ItemStatistics } from '../models/item-statistics.model';
 import { environment } from 'src/environments/environment';
 
 @Injectable({
@@ -30,6 +31,10 @@ export class MonitorService {
   addMonitor(request: MonitorRequest, userid: string): Observable<Monitor> {
     return this.http.post<Monitor>(`${environment.url}/monitors`, request, { headers: new HttpHeaders({ userid }) })
       .pipe(tap(() => this.fetchMonitors(userid)));
+  }
+
+  checkItem(request: MonitorRequest, userid: string): Observable<ItemStatistics> {
+    return this.http.post<ItemStatistics>(`${environment.url}/itemStatistics`, request, { headers: new HttpHeaders({ userid })});
   }
 
   deleteMonitor(monitorId: number, userid: string): Observable<any> {
