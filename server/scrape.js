@@ -199,6 +199,7 @@ async function grabItemSoldHistory(monitorObj) {
       }
       soldHistory.push({ price: itemPrice, date: soldDate });
     });    
+    console.log(soldHistory);
     return soldHistory;
 }
 

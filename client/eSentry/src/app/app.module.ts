@@ -17,6 +17,7 @@ import { SliderModule } from 'primeng/slider';
 import { ChipsModule } from 'primeng/chips';
 import { InputSwitchModule } from 'primeng/inputswitch';
 import { SplitButtonModule } from 'primeng/splitbutton';
+import { ChartModule } from 'primeng/chart';
 
 import {
   GoogleLoginProvider,
@@ -71,6 +72,7 @@ import { ItemCheckerMenuComponent } from './item-checker-menu/item-checker-menu.
     ToastModule,
     InputSwitchModule,
     SplitButtonModule,
+    ChartModule,
   ],
   providers: [
     {

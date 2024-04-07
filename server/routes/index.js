@@ -392,7 +392,16 @@ router.post('/register-or-login', get_post_limiter, async (req, res) => {
   }
 });
 
-// POST: Retrieve item statistics
+
+const calculateIQR = (data) => {
+  const sortedData = data.sort((a, b) => a - b);
+  const q1 = sortedData[Math.floor((sortedData.length / 4))];
+  // For Q3, multiply quartile by 3 and subtract 1 due to zero indexing
+  const q3 = sortedData[Math.floor((sortedData.length * (3 / 4)) - 1)];
+  return q3 - q1;
+};
+
+// POST: Get statistics for a given item
 router.post('/itemStatistics', async (req, res) => {
   const monitorObj = req.body;
   const userID = req.headers.userid;
@@ -414,14 +423,16 @@ router.post('/itemStatistics', async (req, res) => {
 
   try {
     const soldHistory = await grabItemSoldHistory(monitorObj);
-    const prices = soldHistory.map(item => parseFloat(item.price.replace(/[^0-9.-]+/g,"")));
-    console.log(soldHistory)
+    const prices = soldHistory.map(item => parseFloat(item.price.replace(/[^0-9.-]+/g, "")));
+
+    // Calculate statistics 
+    const iqr = calculateIQR(prices);
+    const n = prices.length;
     // Calculate statistics
     const sum = prices.reduce((a, b) => a + b, 0);
     const avgPrice = sum / prices.length || 0;
-    const minPrice = Math.min(...prices);
-    const maxPrice = Math.max(...prices);
-
+    const minPriceRaw = Math.min(...prices);
+    const maxPriceRaw = Math.max(...prices);
 
     // Calculate sales volumes
     const salesLastMonth = soldHistory.filter(item => moment(item.date, 'MMM DD, YYYY').isAfter(moment().subtract(1, 'month'))).length;
@@ -437,21 +448,63 @@ router.post('/itemStatistics', async (req, res) => {
     // If the earliest date is less than a month/year ago, there are probably more sales
     const mightHaveMoreSalesLastMonth = includesSalesLastMonth && !earliestDateInDataset.isSameOrBefore(moment().subtract(1, 'month'));
     const mightHaveMoreSalesLastYear = includesSalesLastYear && !earliestDateInDataset.isSameOrBefore(moment().subtract(1, 'year'));
+    
+    // Calculate bin width using Freedman-Diaconis Rule
+    let binWidth = 2 * iqr * Math.pow(n, -1/3);
 
-    // Respond with adjusted metrics
-    res.json({
-      averagePrice: avgPrice.toFixed(2),
-      minPrice: minPrice.toFixed(2),
-      maxPrice: maxPrice.toFixed(2),
-      volumeLastMonth: salesLastMonth + (mightHaveMoreSalesLastMonth ? "+" : ""),
-      volumeLastYear: salesLastYear + (mightHaveMoreSalesLastYear ? "+" : "")
+
+
+    // For minPrice, round down to the nearest multiple of 5
+    const minPrice = Math.floor(minPriceRaw / 5) * 5;
+    // For maxPrice, round up to the nearest multiple of 5
+    const maxPrice = Math.ceil(maxPriceRaw / 5) * 5;
+
+    // Adjust binWidth if necessary to fit the new min and max prices
+    // You may want to recalculate numBins based on the adjusted range
+    let adjustedRange = maxPrice - minPrice;
+    let numBins = Math.ceil(adjustedRange / binWidth);
+    binWidth = adjustedRange / numBins; // Adjust binWidth to fit the new number of bins
+
+    // Initialize histogram buckets with adjusted ranges
+    let histogramBuckets = Array.from({ length: numBins }, (_, i) => {
+      let lowerBound = minPrice + (i * binWidth);
+      let upperBound = minPrice + ((i + 1) * binWidth);
+
+      // Round lowerBound down and upperBound up to the nearest multiple of 5
+      lowerBound = Math.floor(lowerBound / 5) * 5;
+      upperBound = Math.ceil(upperBound / 5) * 5;
+
+      return {
+        priceRange: `$${lowerBound}-$${upperBound}`,
+        count: 0,
+      };
     });
 
+
+    // Populate histogram buckets
+    prices.forEach(price => {
+      const index = Math.min(
+        Math.floor((price - minPrice) / binWidth),
+        numBins - 1, // Index needs to be within the array bounds
+      );
+      histogramBuckets[index].count++;
+    });
+
+    // Prepare response
+    res.json({
+      averagePrice: avgPrice.toFixed(2),
+      minPrice: minPriceRaw.toFixed(2),
+      maxPrice: maxPriceRaw.toFixed(2),
+      volumeLastMonth: salesLastMonth + (mightHaveMoreSalesLastMonth ? "+" : ""),
+      volumeLastYear: salesLastYear + (mightHaveMoreSalesLastYear ? "+" : ""),
+      priceDistribution: histogramBuckets.filter(bucket => bucket.count > 0) // Filter out empty buckets for cleaner output
+    });
   } catch (error) {
     console.error('Error retrieving item statistics:', error);
     res.status(500).json({ message: 'Error retrieving item statistics', error: error.message });
   }
 });
+
 
 
 module.exports = router;

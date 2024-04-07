@@ -3,6 +3,7 @@ import { MonitorRequest } from 'src/app/models/monitor-request.model';
 import { DialogService } from 'src/app/services/dialog.service';
 import { MonitorService } from 'src/app/services/monitor.service';
 import { UserService } from 'src/app/services/user.service';
+import { ChartModule } from 'primeng/chart';
 
 @Component({
   selector: 'app-new-monitor-menu',
@@ -10,6 +11,7 @@ import { UserService } from 'src/app/services/user.service';
   styleUrls: ['./new-monitor-menu.component.css']
 })
 export class NewMonitorMenuComponent {
+  histogramData: any;
   keywords: string[] = [];
   telegramID = '';
   email = ''; // Add the email property
@@ -59,6 +61,37 @@ export class NewMonitorMenuComponent {
       error: (error) => console.error('Failed to add monitor', error)
     });
   }
+
+  checkItemStatistics() {
+    const monitorRequest: MonitorRequest = {
+      keywords: this.keywords.join(' '),
+      chatid: this.telegramID === '' ? null : this.telegramID,
+      email: this.email === '' ? null : this.email,
+      min_price: this.minPrice > 0 ? this.minPrice : null,
+      max_price: this.maxPrice > 0 ? this.maxPrice : null,
+      exclude_keywords: this.excludeKeywords.length > 0 ? this.excludeKeywords.join(' ') : null,
+      condition_new: this.selectedConditions.includes('new'),
+      condition_open_box: this.selectedConditions.includes('open_box'),
+      condition_used: this.selectedConditions.includes('used'),
+    };
+
+    this.monitorService.checkItem(monitorRequest, this.userService.getCurrentUserID()).subscribe({
+      next: (stats) => {
+        this.histogramData = {
+          labels: stats.priceDistribution.map(item => item.priceRange),
+          datasets: [
+            {
+              data: stats.priceDistribution.map(item => item.count),
+              backgroundColor: ['#3C6E71'],
+              label: 'Price distribution'
+            }
+          ]
+        };
+      },
+      error: (error) => console.error('Failed to check item statistics', error),
+    });
+  }
+  
 
   isValidMonitor() {
     // Regular expression for basic email validation
