@@ -4,6 +4,7 @@ import { DialogService } from 'src/app/services/dialog.service';
 import { MonitorService } from 'src/app/services/monitor.service';
 import { UserService } from 'src/app/services/user.service';
 import { MessageService } from 'primeng/api';
+import { ItemStatistics } from 'src/app/models/item-statistics.model';
 
 @Component({
   selector: 'app-item-checker-menu',
@@ -21,6 +22,9 @@ export class ItemCheckerMenuComponent {
     { label: 'Open Box', value: 'open_box' },
     { label: 'Used', value: 'used' }
   ];
+  histogramData: any;
+  isRequesting: boolean = false;
+  itemStatistics: ItemStatistics | null = null;
 
   constructor(
     public monitorService: MonitorService,
@@ -35,7 +39,7 @@ export class ItemCheckerMenuComponent {
       console.error('Either Telegram ID or Email is required along with keywords');
       return;
     }
-
+    this.isRequesting = true; // Start request
     const monitorRequest: MonitorRequest = {
       keywords: this.keywords.join(' '),
       // Include other fields as necessary
@@ -49,19 +53,23 @@ export class ItemCheckerMenuComponent {
 
     this.monitorService.checkItem(monitorRequest, this.userService.getCurrentUserID()).subscribe({
       next: (stats) => {
-        this.resetForm();
-        this.dialogService.closeCheckItemDialog();
-        // Display statistics in a pop-up box
-        this.messageService.add({
-          severity: 'info',
-          summary: 'Item Statistics',
-          detail: `Average Price: ${stats.averagePrice}\n Min Price: ${stats.minPrice}\n Max Price: ${stats.maxPrice}\n Volume Last Month: ${stats.volumeLastMonth}\n Volume Last Year: ${stats.volumeLastYear}`,
-        });
+        this.itemStatistics = stats; // Store the entire stats response
+        this.histogramData = {
+          labels: stats.priceDistribution.map(item => item.priceRange),
+          datasets: [
+            {
+              data: stats.priceDistribution.map(item => item.count),
+              backgroundColor: ['#3C6E71'],
+              label: 'Price distribution'
+            }
+          ]
+        };
+        this.isRequesting = false; // End request
       },
       error: (error) => {
-        // Handle error
-        console.error('Error fetching item statistics:', error);
-      },
+        console.error('Failed to check item statistics', error);
+        this.isRequesting = false; // End request
+      }
     });
   }
 

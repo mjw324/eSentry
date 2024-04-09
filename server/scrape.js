@@ -191,6 +191,12 @@ async function grabItemSoldHistory(monitorObj) {
       if (!itemPrice) {
         console.warn('Item price not found, skipping item.');
         return; // Skip this iteration if price is not found
+      } else{
+        // Price needs to be in this format: '$975.00', else it will be skipped
+        if (!itemPrice.match(/^\$\d{1,3}(,\d{3})*(\.\d{2})?$/)) {
+          console.warn('Invalid price format, skipping item.');
+          return; // Skip this iteration if price is not in the correct format
+        }
       }
       let soldDate = $(element).find('div.s-item__caption-section div.s-item__title--tag span.POSITIVE').first().text().replace('Sold', '').trim();
       if(!soldDate) {

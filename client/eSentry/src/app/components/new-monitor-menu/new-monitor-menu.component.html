@@ -80,12 +80,27 @@
       placeholder="Add an exclusion"
     ></p-chips>
   </div>
-
-  <div class="ui-g-12" *ngIf="histogramData">
-    <!-- Histogram Chart -->
-    <p-chart type="bar" [data]="histogramData"></p-chart>
+  <!-- Histogram and Additional Statistics -->
+  <div *ngIf="itemStatistics">
+    <div class="ui-g-12">
+      <!-- Histogram Chart -->
+      <p-chart type="bar" [data]="histogramData"></p-chart>
+    </div>
+    <div class="ui-g-12 stats-container">
+      <div>
+        <strong>Average Price:</strong> {{ itemStatistics.averagePrice }}
+      </div>
+      <div><strong>Minimum Price:</strong> {{ itemStatistics.minPrice }}</div>
+      <div><strong>Maximum Price:</strong> {{ itemStatistics.maxPrice }}</div>
+      <div>
+        <strong>Volume Last Month:</strong> {{ itemStatistics.volumeLastMonth }}
+      </div>
+      <div>
+        <strong>Volume Last Year:</strong> {{ itemStatistics.volumeLastYear }}
+      </div>
+    </div>
   </div>
-
+  <br />
   <div class="ui-g-12 button-group">
     <!-- Buttons for actions -->
     <button
@@ -93,7 +108,7 @@
       type="button"
       label="Check Statistics"
       (click)="checkItemStatistics()"
-      [disabled]="!isValidMonitor()"
+      [disabled]="!isValidMonitor() || isRequesting"
       class="ui-button-success button-spacing"
     ></button>
     <button
@@ -101,7 +116,7 @@
       type="button"
       label="Save"
       (click)="saveMonitor()"
-      [disabled]="!isValidMonitor()"
+      [disabled]="!isValidMonitor() || isRequesting"
       class="ui-button-primary"
     ></button>
   </div>

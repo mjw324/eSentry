@@ -3,7 +3,7 @@ import { MonitorRequest } from 'src/app/models/monitor-request.model';
 import { DialogService } from 'src/app/services/dialog.service';
 import { MonitorService } from 'src/app/services/monitor.service';
 import { UserService } from 'src/app/services/user.service';
-import { ChartModule } from 'primeng/chart';
+import { ItemStatistics } from 'src/app/models/item-statistics.model';
 
 @Component({
   selector: 'app-new-monitor-menu',
@@ -11,7 +11,6 @@ import { ChartModule } from 'primeng/chart';
   styleUrls: ['./new-monitor-menu.component.css']
 })
 export class NewMonitorMenuComponent {
-  histogramData: any;
   keywords: string[] = [];
   telegramID = '';
   email = ''; // Add the email property
@@ -24,6 +23,9 @@ export class NewMonitorMenuComponent {
     { label: 'Open Box', value: 'open_box' },
     { label: 'Used', value: 'used' }
   ];
+  histogramData: any;
+  itemStatistics: ItemStatistics | null = null;
+  isRequesting: boolean = false;
 
   constructor(
     public monitorService: MonitorService,
@@ -37,6 +39,8 @@ export class NewMonitorMenuComponent {
       console.error('Either Telegram ID or Email is required along with keywords');
       return;
     }
+
+    this.isRequesting = true; // Start request
 
     const monitorRequest: MonitorRequest = {
       keywords: this.keywords.join(' '),
@@ -57,12 +61,17 @@ export class NewMonitorMenuComponent {
         console.log('Monitor added:', monitor);
         this.resetForm();
         this.dialogService.closeNewMonitorDialog();
+        this.isRequesting = false; // End request
       },
-      error: (error) => console.error('Failed to add monitor', error)
+      error: (error) => {
+        console.error('Failed to add monitor', error);
+        this.isRequesting = false; // End request
+      }
     });
   }
 
   checkItemStatistics() {
+    this.isRequesting = true; // Start request
     const monitorRequest: MonitorRequest = {
       keywords: this.keywords.join(' '),
       chatid: this.telegramID === '' ? null : this.telegramID,
@@ -77,6 +86,7 @@ export class NewMonitorMenuComponent {
 
     this.monitorService.checkItem(monitorRequest, this.userService.getCurrentUserID()).subscribe({
       next: (stats) => {
+        this.itemStatistics = stats; // Store the entire stats response
         this.histogramData = {
           labels: stats.priceDistribution.map(item => item.priceRange),
           datasets: [
@@ -87,8 +97,12 @@ export class NewMonitorMenuComponent {
             }
           ]
         };
+        this.isRequesting = false; // End request
       },
-      error: (error) => console.error('Failed to check item statistics', error),
+      error: (error) => {
+        console.error('Failed to check item statistics', error);
+        this.isRequesting = false; // End request
+      }
     });
   }
   

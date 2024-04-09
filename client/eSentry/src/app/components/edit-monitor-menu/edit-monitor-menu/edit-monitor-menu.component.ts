@@ -4,6 +4,7 @@ import { Monitor } from 'src/app/models/monitor.model';
 import { DialogService } from 'src/app/services/dialog.service';
 import { MonitorService } from 'src/app/services/monitor.service';
 import { UserService } from 'src/app/services/user.service';
+import { ItemStatistics } from 'src/app/models/item-statistics.model';
 
 @Component({
   selector: 'app-edit-monitor-menu',
@@ -24,6 +25,7 @@ export class EditMonitorMenuComponent implements OnInit {
     { label: 'Used', value: 'used' }
   ];
   monitor: Monitor | null = null; // The monitor being edited
+  isRequesting: boolean = false;
 
   constructor(
     private monitorService: MonitorService,
@@ -60,7 +62,7 @@ export class EditMonitorMenuComponent implements OnInit {
       console.error('No monitor to update');
       return;
     }
-  
+    this.isRequesting = true; // Start request
     // Construct the updated monitor request object to send to server to update the monitor
     const monitorRequest: MonitorRequest = {
       keywords: this.keywords.join(' '),
@@ -83,8 +85,12 @@ export class EditMonitorMenuComponent implements OnInit {
         console.log('Monitor updated', monitor);
         this.resetForm();
         this.dialogService.closeEditMonitorDialog();
+        this.isRequesting = false; // End request
       },
-      error: (error) => console.error('Failed to update monitor', error)
+      error: (error) => {
+        console.error('Failed to update monitor', error);
+        this.isRequesting = false; // End request
+      }
     });
   }
 

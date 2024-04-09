@@ -1,48 +1,66 @@
 <span class="monitor_element">
-    <label htmlFor="keywords">Enter keywords</label>
-    <p-chips [(ngModel)]="keywords" separator=" "></p-chips>
-  </span>
-  <span class="monitor_element">
-    <label htmlFor="minPrice">Minimum Price</label>
-    <input type="number" pInputText [(ngModel)]="minPrice" />
-    <p-slider
-      [(ngModel)]="minPrice"
-      [min]="0"
-      [max]="2000"
-      class="w-full"
-    ></p-slider>
-  </span>
-  
-  <span class="monitor_element">
-    <label htmlFor="maxPrice">Maximum Price</label>
-    <input type="number" pInputText [(ngModel)]="maxPrice" />
-    <p-slider
-      [(ngModel)]="maxPrice"
-      [min]="0"
-      [max]="2000"
-      class="w-full"
-    ></p-slider>
-  </span>
-  
-  <span class="monitor_element">
-    <label htmlFor="conditions">Condition</label>
-    <p-selectButton
-      [options]="conditionOptions"
-      [(ngModel)]="selectedConditions"
-      [multiple]="true"
-    ></p-selectButton>
-  </span>
-  
-  <span class="monitor_element">
-    <label htmlFor="excludeKeywords">Exclude Keywords</label>
-    <p-chips [(ngModel)]="excludeKeywords" separator=" "></p-chips>
-  </span>
-  
-  <button
-    pButton
-    type="button"
-    label="Save"
-    (click)="saveMonitor()"
-    [disabled]="!isValidMonitor()"
-  ></button>
-  
+  <label htmlFor="keywords">Enter keywords</label>
+  <p-chips [(ngModel)]="keywords" separator=" "></p-chips>
+</span>
+<span class="monitor_element">
+  <label htmlFor="minPrice">Minimum Price</label>
+  <input type="number" pInputText [(ngModel)]="minPrice" />
+  <p-slider
+    [(ngModel)]="minPrice"
+    [min]="0"
+    [max]="2000"
+    class="w-full"
+  ></p-slider>
+</span>
+
+<span class="monitor_element">
+  <label htmlFor="maxPrice">Maximum Price</label>
+  <input type="number" pInputText [(ngModel)]="maxPrice" />
+  <p-slider
+    [(ngModel)]="maxPrice"
+    [min]="0"
+    [max]="2000"
+    class="w-full"
+  ></p-slider>
+</span>
+
+<span class="monitor_element">
+  <label htmlFor="conditions">Condition</label>
+  <p-selectButton
+    [options]="conditionOptions"
+    [(ngModel)]="selectedConditions"
+    [multiple]="true"
+  ></p-selectButton>
+</span>
+
+<span class="monitor_element">
+  <label htmlFor="excludeKeywords">Exclude Keywords</label>
+  <p-chips [(ngModel)]="excludeKeywords" separator=" "></p-chips>
+</span>
+
+<!-- Histogram and Additional Statistics -->
+<div *ngIf="itemStatistics">
+  <div class="ui-g-12">
+    <!-- Histogram Chart -->
+    <p-chart type="bar" [data]="histogramData"></p-chart>
+  </div>
+  <div class="ui-g-12 stats-container">
+    <div><strong>Average Price:</strong> {{ itemStatistics.averagePrice }}</div>
+    <div><strong>Minimum Price:</strong> {{ itemStatistics.minPrice }}</div>
+    <div><strong>Maximum Price:</strong> {{ itemStatistics.maxPrice }}</div>
+    <div>
+      <strong>Volume Last Month:</strong> {{ itemStatistics.volumeLastMonth }}
+    </div>
+    <div>
+      <strong>Volume Last Year:</strong> {{ itemStatistics.volumeLastYear }}
+    </div>
+  </div>
+</div>
+<br />
+<button
+  pButton
+  type="button"
+  label="Check Statistics"
+  (click)="saveMonitor()"
+  [disabled]="!isValidMonitor() || isRequesting"
+></button>

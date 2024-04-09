@@ -450,44 +450,38 @@ router.post('/itemStatistics', async (req, res) => {
     const mightHaveMoreSalesLastYear = includesSalesLastYear && !earliestDateInDataset.isSameOrBefore(moment().subtract(1, 'year'));
     
     // Calculate bin width using Freedman-Diaconis Rule
-    let binWidth = 2 * iqr * Math.pow(n, -1/3);
+    const binWidth = 2 * iqr * Math.pow(n, -1/3);
 
+    // Determine the number of bins based on the range of your data divided by the bin width
+    const range = maxPriceRaw - minPriceRaw;
+    const numBins = Math.ceil(range / binWidth);
 
+    // Adjust the bin width based on the rounded range and number of bins
+    const adjustedBinWidth = Math.ceil((range / numBins) / 5) * 5; // Ensure bin width is rounded up to the nearest multiple of 5
 
-    // For minPrice, round down to the nearest multiple of 5
-    const minPrice = Math.floor(minPriceRaw / 5) * 5;
-    // For maxPrice, round up to the nearest multiple of 5
-    const maxPrice = Math.ceil(maxPriceRaw / 5) * 5;
+    // Calculate the actual number of bins based on the adjusted bin width
+    const adjustedNumBins = Math.ceil(range / adjustedBinWidth);
 
-    // Adjust binWidth if necessary to fit the new min and max prices
-    // You may want to recalculate numBins based on the adjusted range
-    let adjustedRange = maxPrice - minPrice;
-    let numBins = Math.ceil(adjustedRange / binWidth);
-    binWidth = adjustedRange / numBins; // Adjust binWidth to fit the new number of bins
-
-    // Initialize histogram buckets with adjusted ranges
-    let histogramBuckets = Array.from({ length: numBins }, (_, i) => {
-      let lowerBound = minPrice + (i * binWidth);
-      let upperBound = minPrice + ((i + 1) * binWidth);
-
-      // Round lowerBound down and upperBound up to the nearest multiple of 5
+    // Initialize histogram buckets with adjusted bin width and range
+    let histogramBuckets = Array.from({ length: adjustedNumBins }, (_, i) => {
+      let lowerBound = minPriceRaw + (i * adjustedBinWidth);
+      let upperBound = lowerBound + adjustedBinWidth;
+      // Adjust lowerBound and upperBound to the nearest multiple of 5
       lowerBound = Math.floor(lowerBound / 5) * 5;
-      upperBound = Math.ceil(upperBound / 5) * 5;
+      upperBound = Math.ceil(upperBound / 5) * 5 - 1; // Adjust upper bound to be inclusive
 
       return {
-        priceRange: `$${lowerBound}-$${upperBound}`,
+        priceRange: `${lowerBound}-${upperBound}`,
         count: 0,
       };
     });
 
-
     // Populate histogram buckets
     prices.forEach(price => {
-      const index = Math.min(
-        Math.floor((price - minPrice) / binWidth),
-        numBins - 1, // Index needs to be within the array bounds
-      );
-      histogramBuckets[index].count++;
+      const index = Math.floor((price - minPriceRaw) / adjustedBinWidth);
+      if (index >= 0 && index < histogramBuckets.length) {
+        histogramBuckets[index].count++;
+      }
     });
 
     // Prepare response
