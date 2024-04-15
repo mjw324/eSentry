@@ -13,6 +13,7 @@ import { ItemStatistics } from 'src/app/models/item-statistics.model';
 })
 export class EditMonitorMenuComponent implements OnInit {
   keywords: string[] = [];
+  seller: string = '';
   telegramID = '';
   email = '';
   minPrice = 0;
@@ -45,7 +46,8 @@ export class EditMonitorMenuComponent implements OnInit {
   
 
   populateForm(monitor: Monitor) {
-    this.keywords = monitor.keywords.split(' ');
+    this.keywords = monitor.keywords == undefined ? [] : monitor.keywords.split(' ');
+    this.seller = monitor.seller == undefined ? '' : monitor.seller;
     this.telegramID = monitor.chatid == undefined ? '' : monitor.chatid;
     this.email = monitor.email == undefined ? '' : monitor.email;
     this.minPrice = monitor.min_price || 0;
@@ -65,7 +67,8 @@ export class EditMonitorMenuComponent implements OnInit {
     this.isRequesting = true; // Start request
     // Construct the updated monitor request object to send to server to update the monitor
     const monitorRequest: MonitorRequest = {
-      keywords: this.keywords.join(' '),
+      keywords: this.keywords.length <= 0 ? null : this.keywords.join(' '),
+      seller: this.seller === '' ? null : this.seller,
       chatid: this.telegramID === '' ? null : this.telegramID,
       email: this.email === '' ? null : this.email,
       active: this.monitor.active == 1,
@@ -98,8 +101,8 @@ export class EditMonitorMenuComponent implements OnInit {
     // Regular expression for basic email validation
     const emailRegex = /^\w+([\.-]?\w+)*@\w+([\.-]?\w+)*(\.\w{2,3})+$/;
   
-    // Ensure keywords are provided
-    if (this.keywords.length <= 0) {
+    // Ensure keywords and/or seller are provided
+    if (this.keywords.length <= 0 && this.seller === '') {
       return false;
     }
   
@@ -129,6 +132,7 @@ export class EditMonitorMenuComponent implements OnInit {
 
   resetForm() {
     this.keywords = [];
+    this.seller = '';
     this.telegramID = '';
     this.email = '';
     this.minPrice = 0;

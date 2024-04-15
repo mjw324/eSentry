@@ -4,6 +4,12 @@
 </span>
 
 <span class="monitor_element">
+  <label htmlFor="seller">Seller</label>
+  <input pInputText id="seller" aria-describedby="seller-help" [(ngModel)]="seller" />
+  <small id="seller-help">Seller name has the be an exact match.</small>
+</span>
+
+<span class="monitor_element">
   <label htmlFor="telegramID">Telegram User ID</label>
   <input
     type="number"

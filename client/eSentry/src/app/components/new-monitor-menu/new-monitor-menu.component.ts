@@ -12,6 +12,7 @@ import { ItemStatistics } from 'src/app/models/item-statistics.model';
 })
 export class NewMonitorMenuComponent {
   keywords: string[] = [];
+  seller: string = '';
   telegramID = '';
   email = ''; // Add the email property
   minPrice = 0;
@@ -35,7 +36,7 @@ export class NewMonitorMenuComponent {
 
   saveMonitor() {
     // Ensure at least one notification method is provided along with keywords
-    if (!(this.keywords.length > 0 && (this.telegramID !== '' || this.email !== ''))) {
+    if (!((this.keywords.length > 0 || this.seller !== '') && (this.telegramID !== '' || this.email !== ''))) {
       console.error('Either Telegram ID or Email is required along with keywords');
       return;
     }
@@ -44,10 +45,10 @@ export class NewMonitorMenuComponent {
 
     const monitorRequest: MonitorRequest = {
       keywords: this.keywords.join(' '),
+      seller: this.seller === '' ? null : this.seller, // Handle empty string as null
       chatid: this.telegramID === '' ? null : this.telegramID, // Handle empty string as null
       email: this.email === '' ? null : this.email, // Include the email in the request
       active: false, // Default to inactive when creating a new monitor
-      // Include other fields as necessary
       min_price: this.minPrice > 0 ? this.minPrice : null,
       max_price: this.maxPrice > 0 ? this.maxPrice : null,
       exclude_keywords: this.excludeKeywords.length > 0 ? this.excludeKeywords.join(' ') : null,
@@ -111,8 +112,8 @@ export class NewMonitorMenuComponent {
     // Regular expression for basic email validation
     const emailRegex = /^\w+([\.-]?\w+)*@\w+([\.-]?\w+)*(\.\w{2,3})+$/;
   
-    // Ensure keywords are provided
-    if (this.keywords.length <= 0) {
+    // Ensure keywords and/or seller is provided
+    if (this.keywords.length <= 0 && this.seller === '') {
       return false;
     }
   

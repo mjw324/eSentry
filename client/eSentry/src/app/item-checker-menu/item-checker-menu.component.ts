@@ -3,7 +3,6 @@ import { MonitorRequest } from 'src/app/models/monitor-request.model';
 import { DialogService } from 'src/app/services/dialog.service';
 import { MonitorService } from 'src/app/services/monitor.service';
 import { UserService } from 'src/app/services/user.service';
-import { MessageService } from 'primeng/api';
 import { ItemStatistics } from 'src/app/models/item-statistics.model';
 
 @Component({
@@ -13,6 +12,7 @@ import { ItemStatistics } from 'src/app/models/item-statistics.model';
 })
 export class ItemCheckerMenuComponent {
   keywords: string[] = [];
+  seller: string = '';
   minPrice = 0;
   maxPrice = 0;
   excludeKeywords: string[] = [];
@@ -29,19 +29,18 @@ export class ItemCheckerMenuComponent {
   constructor(
     public monitorService: MonitorService,
     public dialogService: DialogService, 
-    private userService: UserService,
-    private messageService: MessageService
+    private userService: UserService
   ) {}
 
   saveMonitor() {
-    // Ensure at least one notification method is provided along with keywords
-    if (!(this.keywords.length > 0)) {
-      console.error('Either Telegram ID or Email is required along with keywords');
+    if (this.keywords.length <= 0 && this.seller == '') {
+      console.error('Either keywords or seller is required');
       return;
     }
     this.isRequesting = true; // Start request
     const monitorRequest: MonitorRequest = {
-      keywords: this.keywords.join(' '),
+      keywords: this.keywords.length > 0 ? this.keywords.join(' ') : null,
+      seller: this.seller != '' ? this.seller : null,
       // Include other fields as necessary
       min_price: this.minPrice > 0 ? this.minPrice : null,
       max_price: this.maxPrice > 0 ? this.maxPrice : null,
@@ -74,8 +73,8 @@ export class ItemCheckerMenuComponent {
   }
 
   isValidMonitor() {
-    // Ensure keywords are provided
-    if (this.keywords.length <= 0) {
+    // Ensure keywords and/or seller is provided
+    if (this.keywords.length <= 0 && this.seller == '') {
       return false;
     }
     // Validate price range if both prices are provided
@@ -91,6 +90,7 @@ export class ItemCheckerMenuComponent {
 
   resetForm() {
     this.keywords = [];
+    this.seller = '';
     this.minPrice = 0;
     this.maxPrice = 0;
     this.excludeKeywords = [];

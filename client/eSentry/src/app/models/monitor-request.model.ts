@@ -1,5 +1,6 @@
 export type MonitorRequest = {
-    keywords: string;
+    keywords?: string | null;
+    seller?: string | null;
     chatid?: string | null;
     email?: string | null;
     active?: boolean;

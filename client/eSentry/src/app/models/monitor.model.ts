@@ -1,6 +1,7 @@
 export type Monitor = {
     id: number;
-    keywords: string;
+    keywords?: string;
+    seller?: string;
     chatid?: string;
     email?: string;
     active: number;

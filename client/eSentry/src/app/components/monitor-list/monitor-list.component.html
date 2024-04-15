@@ -5,6 +5,7 @@
     <tr>
       <th>Status</th>
       <th>Keywords</th>
+      <th>Seller</th>
       <th>TelegramID</th>
       <th>Email</th>
       <th>Minimum Price</th>
@@ -24,6 +25,7 @@
         ></p-inputSwitch>
       </td>
       <td>{{ monitor.keywords }}</td>
+      <td>{{ monitor.seller }}</td>
       <td>{{ monitor.chatid }}</td>
       <td>{{ monitor.email }}</td>
       <td>
@@ -54,7 +56,7 @@
   </ng-template>
   <ng-template pTemplate="emptymessage">
     <tr>
-      <td colspan="10">No monitors found</td>
+      <td colspan="11">No monitors found</td>
     </tr>
   </ng-template>
 </p-table>

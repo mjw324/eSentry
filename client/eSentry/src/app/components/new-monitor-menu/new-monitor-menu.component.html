@@ -1,12 +1,14 @@
 <div class="ui-g">
-  <div class="ui-g-12 monitor_element">
-    <label for="keywords">Enter keywords</label>
-    <p-chips
-      [(ngModel)]="keywords"
-      separator=","
-      placeholder="Add a keyword"
-    ></p-chips>
-  </div>
+  <span class="monitor_element">
+    <label htmlFor="keywords">Enter keywords</label>
+    <p-chips [(ngModel)]="keywords" separator=" "></p-chips>
+  </span>
+  
+  <span class="monitor_element">
+    <label htmlFor="seller">Seller</label>
+    <input pInputText id="seller" aria-describedby="seller-help" [(ngModel)]="seller" />
+    <small id="seller-help">Seller name has the be an exact match.</small>
+  </span>
 
   <span class="monitor_element">
     <label htmlFor="telegramID">Telegram User ID</label>
