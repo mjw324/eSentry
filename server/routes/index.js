@@ -60,14 +60,18 @@ router.post('/monitors', async (req, res) => {
   const monitorObj = req.body;
   const userID = req.headers.userid;
 
-  // Telegram ID and/or email is required, keywords are required
-  if (!monitorObj.keywords || (!monitorObj.chatid && !monitorObj.email) || !userID) {
-    return res.status(400).json({ message: 'Keywords and User ID are required. Either Telegram ID or Email must be provided.' });
+  // Telegram ID and/or email is required, keywords and/or seller is required
+  if ((!monitorObj.keywords && !monitorObj.seller) || (!monitorObj.chatid && !monitorObj.email) || !userID) {
+    return res.status(400).json({ message: 'Keywords/Seller and User ID are required. Either Telegram ID or Email must be provided.' });
   }
 
   // Check for inappropriate words in keywords
   if (filter.isProfane(monitorObj.keywords)) {
     return res.status(400).json({ message: 'Keywords contain inappropriate words' });
+  }
+  // Check for inappropriate words in seller
+  if (filter.isProfane(monitorObj.seller)) {
+    return res.status(400).json({ message: 'Seller contains inappropriate words' });
   }
 
   try {
@@ -85,11 +89,12 @@ router.post('/monitors', async (req, res) => {
 
     // Insert the new monitor
     const [insertResult] = await db.pool.promise().query(
-      'INSERT INTO monitors (keywords, chatid, email, userid, recentlink, min_price, max_price, condition_new, condition_open_box, condition_used, exclude_keywords) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)',
+      'INSERT INTO monitors (keywords, seller, chatid, email, userid, recentlink, min_price, max_price, condition_new, condition_open_box, condition_used, exclude_keywords) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)',
       [
-        monitorObj.keywords,
-        monitorObj.chatid || null, // Allow null if chatid is not provided
-        monitorObj.email || null, // Allow null if email is not provided
+        monitorObj.keywords || null,
+        monitorObj.seller || null,
+        monitorObj.chatid || null,
+        monitorObj.email || null,
         userID,
         null, // recentlink is always null/non-existent when scraper is first initialized
         monitorObj.min_price || null,
@@ -245,6 +250,7 @@ router.patch('/monitors/:id', update_limiter, async (req, res) => {
     const query = `
       UPDATE monitors SET 
       keywords = ?, 
+      seller = ?,
       chatid = ?, 
       email = ?, 
       userid = ?, 
@@ -259,6 +265,7 @@ router.patch('/monitors/:id', update_limiter, async (req, res) => {
     `;
     const queryParams = [
       updateObj.keywords,
+      updateObj.seller,
       updateObj.chatid,
       updateObj.email,
       userID, // User ID does not change
@@ -406,7 +413,7 @@ router.post('/itemStatistics', async (req, res) => {
   const monitorObj = req.body;
   const userID = req.headers.userid;
 
-  if (!monitorObj.keywords || !userID) {
+  if ((!monitorObj.keywords && !monitorObj.seller) || !userID) {
     return res.status(400).json({ message: 'Keywords and User ID are required.' });
   }
 
@@ -468,7 +475,7 @@ router.post('/itemStatistics', async (req, res) => {
       let upperBound = lowerBound + adjustedBinWidth;
       // Adjust lowerBound and upperBound to the nearest multiple of 5
       lowerBound = Math.floor(lowerBound / 5) * 5;
-      upperBound = Math.ceil(upperBound / 5) * 5 - 1; // Adjust upper bound to be inclusive
+      upperBound = Math.ceil(upperBound / 5) * 5;
 
       return {
         priceRange: `${lowerBound}-${upperBound}`,
@@ -498,7 +505,5 @@ router.post('/itemStatistics', async (req, res) => {
     res.status(500).json({ message: 'Error retrieving item statistics', error: error.message });
   }
 });
-
-
 
 module.exports = router;

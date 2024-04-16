@@ -75,6 +75,7 @@ export class NewMonitorMenuComponent {
     this.isRequesting = true; // Start request
     const monitorRequest: MonitorRequest = {
       keywords: this.keywords.join(' '),
+      seller: this.seller === '' ? null : this.seller,
       chatid: this.telegramID === '' ? null : this.telegramID,
       email: this.email === '' ? null : this.email,
       min_price: this.minPrice > 0 ? this.minPrice : null,

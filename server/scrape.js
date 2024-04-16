@@ -36,18 +36,18 @@ function sendEmailAlert(items, keywords, recipientEmail) {
   const mailOptions = {
     from: `"Monitor Alert" <${process.env.EMAIL_USER}>`,
     to: recipientEmail,
-    subject: `New eBay Listing Found for: ${keywords}`,
+    subject: `New eBay Listing Found - ${keywords}`,
     html: `
       <div style="font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif; padding: 20px; color: #393a3d;">
         <div style="background-color: #F4743B; padding: 10px; border-radius: 5px; margin: 30px auto; width: fit-content;">
           <h2 style="color: #3C6E71; font-size: 22px; text-align: center;">New Items Found!</h2>
-          <p style="color: #FFFFEB; font-size: 18px; text-align: center;">Results for your Search: <strong style="color: #3C6E71;">${keywords}</strong></p>
+          <p style="color: #FFFFEB; font-size: 18px; text-align: center;">Results for your ${keywords}</p>
         </div>
         ${itemsHtml}
         <br>
         <hr style="margin-top: 30px;">
         <h1 style="color: #3C6E71; font-size: 24px; text-align: center;">
-          Discover Rare eBay Finds <span style="color: #F4743B;">Instantly.</span>
+          Discover Rare eBay Finds Instantly.
         </h1>
         <p style="color: #0C1717; text-align: center; font-size: 18px; margin-top: 20px;">
           <strong>eSentry alerts you about new eBay listings matching your customized preferences, ensuring you never miss out on the perfect deal.</strong>
@@ -85,27 +85,35 @@ async function retrieveMonitor(url, monitorObj) {
     monitorObj.newScraped = [];
   } else {
     let difference = monitorObj.newScraped.filter(newItem => !monitorObj.scraped.some(scrapedItem => newItem.name === scrapedItem.name));
-
     if (difference.length) {
       console.log("New items found:", difference.slice(0, 3)); // Log the first three new items found
+    
+      // Constructing the base message content for Telegram
+      let baseMessageContent = '🔍';
+      if (monitorObj.keywords) baseMessageContent += ` <b>Search</b> ${monitorObj.keywords}`;
+      if (monitorObj.seller) baseMessageContent += ` <b>From Seller:</b> ${monitorObj.seller}`;
+    
       // Send Telegram alert if chatid is present
       if (monitorObj.chatid) {
-        let messageContent = `🔍 <b>Search:</b> ${monitorObj.keywords}\n\n\n`;
+        let messageContent = baseMessageContent;
         difference.slice(0, 3).forEach(item => {
-          messageContent += `🏷️ <b>Product:</b> ${item.name}\n\n💰 <b>Price:</b> ${item.price}\n\n<a href="${item.link}">🛒 View Item on eBay</a>\n\n\n`;
+          messageContent += `\n\n🏷️ <b>Product:</b> ${item.name}\n💰 <b>Price:</b> ${item.price}\n<a href="${item.link}">🛒 View Item on eBay</a>\n`;
         });
         bot.sendMessage(monitorObj.chatid, messageContent, { parse_mode: "HTML" });
       }
+    
       // Send email alert if email is present
       if (monitorObj.email) {
-        sendEmailAlert(difference.slice(0, 3), monitorObj.keywords, monitorObj.email);
+        let emailKeywords = monitorObj.keywords ? `Search ${monitorObj.keywords}` : '';
+        emailKeywords += monitorObj.seller ? ` from Seller ${monitorObj.seller}` : '';
+        sendEmailAlert(difference.slice(0, 3), emailKeywords, monitorObj.email);
       }
+    
       // Update the database with the most recent link from the first item in the difference array
       const mostRecentItem = difference[0];
       db.pool.query('UPDATE monitors SET recentlink = ? WHERE id = ?', [mostRecentItem.link, monitorObj.id], function (error) {
         if (error) console.log(error);
       });
-
     } else {
       console.log(`No new results for ${monitorObj.keywords}`);
     }
@@ -117,9 +125,9 @@ async function retrieveMonitor(url, monitorObj) {
 
 function addScraper(monitorObj, milliseconds) {
   var url = `https://www.ebay.com/sch/i.html?_from=R40&_sacat=0&LH_BIN=1&_sop=10&rt=nc&_nkw=`;
-
+  
   // take specified keywords and replace whitespace chars with the char '+' for URL
-  url += monitorObj.keywords.replace(/ /g, "+");
+  monitorObj.keywords ? url += monitorObj.keywords.replace(/ /g, "+") : null;
   // add exclude keywords to URL if specified
   monitorObj.exclude_keywords ? url += `+-${monitorObj.exclude_keywords.replace(/ /g, "+-")}` : null;
   // add conditions to url if specified
@@ -136,6 +144,7 @@ function addScraper(monitorObj, milliseconds) {
   // add price range filter if specified
   monitorObj.min_price ? url += `&_udlo=${monitorObj.min_price}` : null;
   monitorObj.max_price ? url += `&_udhi=${monitorObj.max_price}` : null;
+  monitorObj.seller ? url += `&_saslop=1&_sasl=${monitorObj.seller}` : null;
   monitorObj.scraped = [];
   monitorObj.newScraped = [];
   // setInterval will call retrieveMonitor in the specified interval of milliseconds
@@ -180,7 +189,7 @@ async function grabItemSoldHistory(monitorObj) {
     // add price range filter if specified
     monitorObj.min_price ? url += `&_udlo=${monitorObj.min_price}` : null;
     monitorObj.max_price ? url += `&_udhi=${monitorObj.max_price}` : null;
-
+    monitorObj.seller ? url += `&_saslop=1&_sasl=${monitorObj.seller}` : null;
     // Retrieve the sold history of the item
     const response = await axios(url);
     const html = response.data;

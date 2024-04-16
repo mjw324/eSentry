@@ -39,7 +39,8 @@ pool.query(`
 CREATE TABLE IF NOT EXISTS monitors (
   id INT AUTO_INCREMENT PRIMARY KEY,
   userid VARCHAR(255) NOT NULL,
-  keywords VARCHAR(255) NOT NULL,
+  keywords VARCHAR(255),
+  seller VARCHAR(255),
   chatid VARCHAR(255),
   email VARCHAR(255),
   recentlink VARCHAR(255),
@@ -61,7 +62,7 @@ CREATE TABLE IF NOT EXISTS monitors (
 
 // Initialize all active scrapers on server startup
 pool.query('SELECT * FROM monitors WHERE active = 1', function(error, results) {
-  if (error) { 
+  if (error) {
     console.error("Error fetching monitors on startup:", error);
     return;
   }
