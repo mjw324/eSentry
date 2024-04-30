@@ -145,10 +145,10 @@ router.patch('/monitors/:id/status', update_limiter, async (req, res) => {
     if (monitor.active !== active) {
       if (active) {
         // Enable monitor if it's currently inactive
-        await checkAndEnableMonitor(id, userID, res); // Make sure this function is properly updated for async handling
+        await checkAndEnableMonitor(id, userID, res);
       } else {
         // Disable monitor if it's currently active
-        await performUpdate(id, false, res); // Make sure this function is properly updated for async handling
+        await performUpdate(id, false, res);
         stopScraper(parseInt(id)); // Assuming stopScraper is synchronous or has its own async handling
       }
     } else {
@@ -297,7 +297,7 @@ router.patch('/monitors/:id', update_limiter, async (req, res) => {
 
 // POST: Register a new user
 router.post('/register', async (req, res) => {
-  const { username, password } = req.body; // Assuming you're getting email in the request
+  const { username, password } = req.body;
 
   // Basic validation
   if (!username || !password) {
