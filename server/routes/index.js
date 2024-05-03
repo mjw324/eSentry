@@ -145,11 +145,11 @@ router.patch('/monitors/:id/status', update_limiter, async (req, res) => {
     if (monitor.active !== active) {
       if (active) {
         // Enable monitor if it's currently inactive
-        await checkAndEnableMonitor(id, userID, res); // Make sure this function is properly updated for async handling
+        await checkAndEnableMonitor(id, userID, res);
       } else {
         // Disable monitor if it's currently active
-        await performUpdate(id, false, res); // Make sure this function is properly updated for async handling
-        stopScraper(parseInt(id)); // Assuming stopScraper is synchronous or has its own async handling
+        await performUpdate(id, false, res);
+        stopScraper(parseInt(id));
       }
     } else {
       // No change needed, monitor is already in the requested state
@@ -207,7 +207,6 @@ router.delete('/monitors/:id', get_post_limiter, async (req, res, next) => {
 
   try {
     const [results] = await db.pool.promise().query('DELETE FROM monitors WHERE id = ? AND userid = ?', [id, userID]);
-    // Assuming stopScraper is synchronous or properly handles asynchronous operations itself
     stopScraper(parseInt(id));
     if (results.affectedRows > 0) {
       // Respond with a success message if the monitor was successfully deleted
@@ -297,7 +296,7 @@ router.patch('/monitors/:id', update_limiter, async (req, res) => {
 
 // POST: Register a new user
 router.post('/register', async (req, res) => {
-  const { username, password } = req.body; // Assuming you're getting email in the request
+  const { username, password } = req.body;
 
   // Basic validation
   if (!username || !password) {
