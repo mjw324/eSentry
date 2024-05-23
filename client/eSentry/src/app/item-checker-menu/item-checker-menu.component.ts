@@ -41,7 +41,6 @@ export class ItemCheckerMenuComponent {
     const monitorRequest: MonitorRequest = {
       keywords: this.keywords.length > 0 ? this.keywords.join(' ') : null,
       seller: this.seller != '' ? this.seller : null,
-      // Include other fields as necessary
       min_price: this.minPrice > 0 ? this.minPrice : null,
       max_price: this.maxPrice > 0 ? this.maxPrice : null,
       exclude_keywords: this.excludeKeywords.length > 0 ? this.excludeKeywords.join(' ') : null,

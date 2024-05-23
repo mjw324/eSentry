@@ -35,7 +35,7 @@ export class NewMonitorMenuComponent {
   ) {}
 
   saveMonitor() {
-    // Ensure at least one notification method is provided along with keywords
+    // Ensure at least one notification method is provided along with keywords/seller
     if (!((this.keywords.length > 0 || this.seller !== '') && (this.telegramID !== '' || this.email !== ''))) {
       console.error('Either Telegram ID or Email is required along with keywords');
       return;

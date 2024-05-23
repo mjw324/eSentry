@@ -149,7 +149,11 @@ router.patch('/monitors/:id/status', update_limiter, async (req, res) => {
       } else {
         // Disable monitor if it's currently active
         await performUpdate(id, false, res);
+<<<<<<< HEAD
         stopScraper(parseInt(id));
+=======
+        stopScraper(parseInt(id)); // Assuming stopScraper is synchronous or has its own async handling
+>>>>>>> 1a7ec067063c9748409390cdd816b20c885a7439
       }
     } else {
       // No change needed, monitor is already in the requested state
