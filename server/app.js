@@ -12,7 +12,16 @@ const indexRouter = require('./routes/index');
 app.use(logger('dev'));
 app.use(express.json());
 app.use(express.urlencoded({ extended: false }));
-app.use(cors());
+
+const corsOptions = {
+  origin: ['http://localhost:4200', 'https://www.esentry-notify.com'],
+  methods: ['GET', 'POST', 'OPTIONS', 'PATCH', 'DELETE'],
+  allowedHeaders: ['Origin', 'X-Requested-With', 'Content-Type', 'Accept', 'Authorization', 'userid'],
+  optionsSuccessStatus: 204
+};
+
+app.use(cors(corsOptions));
+
 
 app.use('/', indexRouter);
 
