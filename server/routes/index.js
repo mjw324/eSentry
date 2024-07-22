@@ -9,7 +9,7 @@ const { v4: uuidv4 } = require('uuid');
 const rateLimit = require('express-rate-limit');
 const moment = require('moment');
 // Import addScraper function from scrape.js
-const { addScraper, stopScraper, grabItemSoldHistory } = require('../scrape');
+const { addScraper, stopScraper, grabItemSoldHistory, addAmazonScraper, stopAmazonScraper } = require('../scrape');
 const router = express.Router();
 const saltRounds = 10; // for bcrypt password hashing
 const filter = new BadWords();

@@ -3,7 +3,6 @@ const cheerio = require('cheerio');
 const TelegramBot = require('node-telegram-bot-api');
 const nodemailer = require('nodemailer');
 const db = require('./db');
-const { sourcerepo } = require('googleapis/build/src/apis/sourcerepo');
 const bot_token = process.env.DEVBUILD == 1 ? process.env.TELEGRAM_DEVBOT_TOKEN : process.env.TELEGRAM_BOT_TOKEN;
 const bot = new TelegramBot(bot_token, { polling: true });
 const monitorIntervals = new Map();
@@ -99,7 +98,13 @@ async function retrieveMonitor(url, monitorObj) {
         difference.slice(0, 3).forEach(item => {
           messageContent += `\n\n🏷️ <b>Product:</b> ${item.name}\n💰 <b>Price:</b> ${item.price}\n<a href="${item.link}">🛒 View Item on eBay</a>\n`;
         });
-        bot.sendMessage(monitorObj.chatid, messageContent, { parse_mode: "HTML" });
+        bot.sendMessage(monitorObj.chatid, messageContent, { parse_mode: "HTML" })
+            .catch(error => {
+              if (error.response && error.response.statusCode === 400) {
+                console.error(`Error sending Telegram message: ${error.response.body.description}`);
+                stopScraper(monitorObj.id);
+              }
+            });
       }
     
       // Send email alert if email is present
@@ -217,4 +222,81 @@ async function grabItemSoldHistory(monitorObj) {
     return soldHistory;
 }
 
-module.exports = { addScraper, stopScraper, grabItemSoldHistory };
+async function retrieveAmazonMonitor(url, monitorObj) {
+  try {
+    const response = await axios(url);
+    const html = response.data;
+    const $ = cheerio.load(html);
+
+    if (!html || html.trim() === '') {
+      console.error(`No HTML returned for URL: ${url}`);
+      stopAmazonScraper(monitorObj.id);
+      return;
+    }
+
+    // Find the element that contains the used price
+    const usedPriceElement = $('div[data-csa-c-slot-id="usedAccordionRow"] span.a-price.a-text-normal span.a-offscreen');
+    
+    // Extract the price
+    const usedPrice = usedPriceElement.first().text();
+
+    if (usedPrice) {
+      if (monitorObj.currentPrice !== usedPrice) {
+        console.log(`Used Price for ${url}: ${usedPrice}`);
+        monitorObj.currentPrice = usedPrice;
+
+        // Alert the user via Telegram
+        if (monitorObj.chatid) {
+          const messageContent = `🔍 <b>Amazon Monitor</b>\n🏷️ <b>Product:</b> ${url}\n💰 <b>Used Price:</b> ${usedPrice}`;
+          bot.sendMessage(monitorObj.chatid, messageContent, { parse_mode: "HTML" })
+            .catch(error => {
+              if (error.response && error.response.statusCode === 400) {
+                console.error(`Error sending Telegram message: ${error.response.body.description}`);
+                stopAmazonScraper(monitorObj.id);
+              }
+            });
+        }
+
+        // Alert the user via Email
+        if (monitorObj.email) {
+          const items = [{ name: url, price: usedPrice, link: url, image: '' }];
+          sendEmailAlert(items, 'Amazon Used Price Monitor', monitorObj.email);
+        }
+      }
+    } else {
+      console.log(`No used price found for ${url}`);
+    }
+
+  } catch (error) {
+    console.error('Error retrieving the monitor data:', error);
+    stopAmazonScraper(monitorObj.id);
+  }
+}
+
+function addAmazonScraper(monitorObj, milliseconds) {
+  const url = monitorObj.url;
+  monitorObj.currentPrice = null;
+
+  const intervalID = setInterval(() => {
+    retrieveAmazonMonitor(url, monitorObj).catch(error => {
+      console.error(`Failed to retrieve monitor for URL "${url}":`, error);
+    });
+  }, milliseconds);
+
+  console.log(`Starting Amazon scraper for monitor URL ${url} with interval ID ${intervalID}`);
+  monitorIntervals.set(monitorObj.id, intervalID);
+  console.log(`Current monitorIntervals:`, monitorIntervals);
+}
+
+function stopAmazonScraper(monitorID) {
+  const intervalID = monitorIntervals.get(monitorID);
+  if (intervalID) {
+    console.log(`Stopping Amazon scraper for monitor ID ${monitorID} with interval ID ${intervalID}`);
+    clearInterval(intervalID);
+    monitorIntervals.delete(monitorID);
+  } else {
+    console.log(`No active scraper interval found for monitor ID ${monitorID}.`);
+  }
+}
+
+module.exports = { addScraper, stopScraper, grabItemSoldHistory, addAmazonScraper, stopAmazonScraper };
