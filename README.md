@@ -2,8 +2,6 @@
 
 eSentry is a powerful web application designed to monitor eBay for items as requested by the users! It monitors item listings real-time and notifies users of any new listings that meet their filters. eSentry then sends a Telegram message within seconds of the new listing to the user.
 
-**Try eSentry Live!** [eSentry](https://esentry-notify.com/)
-
 ## Features
 
 - **eBay Listing Monitoring**: Input an eBay item you desire and let eSentry do the rest. It will continuously monitor the search results and notify you of any new listings.
